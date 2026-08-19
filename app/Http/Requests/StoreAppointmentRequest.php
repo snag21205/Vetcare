@@ -12,7 +12,7 @@ class StoreAppointmentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,24 @@ class StoreAppointmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'pet_id'       => 'required|exists:pets,id',
+            'doctor_id'    => 'nullable|exists:users,id',
+            'scheduled_at' => 'required|date|after_or_equal:today',
+            'reason'       => 'required|string|max:500',
+            'note'         => 'nullable|string',
+            'notes'        => 'nullable|string',
+            'status'       => 'sometimes|in:pending,confirmed,checked_in,completed,cancelled,no_show',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'pet_id.required'            => 'Vui lòng chọn vật nuôi.',
+            'pet_id.exists'              => 'Vật nuôi không tồn tại.',
+            'scheduled_at.required'      => 'Vui lòng chọn ngày giờ hẹn.',
+            'scheduled_at.after_or_equal' => 'Ngày hẹn phải từ hôm nay trở đi.',
+            'reason.required'            => 'Vui lòng nhập lý do khám.',
         ];
     }
 }

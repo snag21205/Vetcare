@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\PetController;
 use Illuminate\Support\Facades\Route;
 
 // Trang chủ → redirect về login
@@ -15,6 +16,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers');
+    Route::get('/pets', [PetController::class, 'index'])->name('pets');
 });
 
 // ===== ROUTE CHỈ ADMIN =====
@@ -22,6 +25,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('medicines', \App\Http\Controllers\MedicineController::class);
     Route::resource('services', \App\Http\Controllers\ServiceController::class);
     Route::resource('users', \App\Http\Controllers\UserController::class);
+    Route::resource('customers', \App\Http\Controllers\CustomerController::class);
 });
 
 // ===== ROUTE CHO LỄ TÂN VÀ ADMIN =====
@@ -29,6 +33,16 @@ Route::middleware(['auth', 'role:receptionist|admin'])->group(function () {
     Route::resource('customers', \App\Http\Controllers\CustomerController::class);
     Route::resource('pets', \App\Http\Controllers\PetController::class);
     Route::resource('appointments', \App\Http\Controllers\AppointmentController::class);
+    Route::patch(
+        'appointments/{appointment}/check-in',
+        [\App\Http\Controllers\AppointmentController::class, 'checkIn']
+    )
+        ->name('appointments.check-in');
+    Route::patch(
+        'appointments/{appointment}/confirm',
+        [\App\Http\Controllers\AppointmentController::class, 'confirm']
+    )
+        ->name('appointments.confirm');
 });
 
 // ===== ROUTE CHO BÁC SĨ VÀ ADMIN =====
