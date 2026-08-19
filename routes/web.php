@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CustomerController;
 use Illuminate\Support\Facades\Route;
 
 // Trang chủ → redirect về login
@@ -40,7 +41,7 @@ Route::middleware(['auth', 'role:accountant|admin'])->group(function () {
     Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
     Route::resource('expense-vouchers', \App\Http\Controllers\ExpenseVoucherController::class);
     Route::get('/reports/revenue', [\App\Http\Controllers\ReportController::class, 'revenue'])
-         ->name('reports.revenue');
+        ->name('reports.revenue');
 });
 
 require __DIR__ . '/auth.php';
