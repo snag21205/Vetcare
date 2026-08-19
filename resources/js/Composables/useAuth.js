@@ -9,7 +9,7 @@ export function useAuth() {
 
     const isAdmin = computed(() => role.value === 'admin');
     const isReceptionist = computed(() => role.value === 'receptionist');
-    const isvet = computed(() => role.value === 'vet');
+    const isVet = computed(() => role.value === 'vet');
     const isAccountant = computed(() => role.value === 'accountant');
 
     const hasRole = (roleName) => role.value === roleName;
@@ -19,7 +19,7 @@ export function useAuth() {
         role,
         isAdmin,
         isReceptionist,
-        isvet,
+        isVet,
         isAccountant,
         hasRole
     }
