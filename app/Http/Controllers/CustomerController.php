@@ -26,7 +26,7 @@ class CustomerController extends Controller
             ->latest()
             ->paginate(15);
 
-        return Inertia::render('Customer/Index', [
+        return Inertia::render('Customers/Index', [
             'customers' => $customers,
             'filters' => ['search' => $search],
         ]);
@@ -76,7 +76,7 @@ class CustomerController extends Controller
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
         $customer->update($request->validated());
-        return redirect()->route('customer.index')
+        return redirect()->route('customers.index')
             ->with('success', 'Đã cập nhập thông tin khách hàng!');
     }
 

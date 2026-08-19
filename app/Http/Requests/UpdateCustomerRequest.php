@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCustomerRequest extends FormRequest
 {
@@ -22,14 +23,21 @@ class UpdateCustomerRequest extends FormRequest
      */
     public function rules(): array
     {
-        $customerId = $this->route('customer');
+        // $this->route('customer') trả về Customer model (Route Model Binding)
+        // ->getKey() lấy ID của nó
+        $customerId = $this->route('customer')?->getKey();
 
         return [
-            'name' => 'required|string|max:255',
-            'phone' => "required|string|max:20|unique:customers,phone,{$customerId}",
-            'email' => 'nullable|email|max:255',
+            'name'    => 'required|string|max:255',
+            // ignore($customerId): bỏ qua chính record này khi check unique
+            // whereNull('deleted_at'): bỏ qua soft-deleted records
+            'phone'   => ['required', 'string', 'max:20',
+                          Rule::unique('customers', 'phone')
+                              ->ignore($customerId)
+                              ->whereNull('deleted_at')],
+            'email'   => 'nullable|email|max:255',
             'address' => 'nullable|string|max:500',
-            'note' => 'nullable|string',
+            'note'    => 'nullable|string',
         ];
     }
     public function messages(): array

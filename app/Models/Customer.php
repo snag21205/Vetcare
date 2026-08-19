@@ -15,7 +15,7 @@ class Customer extends Model
         'phone',
         'email',
         'address',
-        'notes'
+        'note'
     ];
 
     public function pets(): HasMany

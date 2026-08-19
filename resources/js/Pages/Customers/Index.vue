@@ -3,6 +3,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, watch } from 'vue'
 
+// Hàm xóa: confirm trước, rồi gửi DELETE request
+function deleteCustomer(id, name) {
+    if (!confirm(`Bạn chắc chắn muốn xóa khách hàng "${name}"?`)) return
+    router.delete(route('customers.destroy', id))
+}
+
 const props = defineProps({
     customers: Object,
     filters: Object,
@@ -76,12 +82,12 @@ watch(search, (value) => {
                                     class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded hover:bg-yellow-200">
                                     Sửa
                                 </Link>
-                                <!-- Xóa: dùng Link với method="delete" -->
-                                <Link :href="route('customers.destroy', customer.id)" method="delete" as="button"
-                                    :onBefore="() => confirm('Xóa khách hàng này?')"
+                                <!-- Xóa: dùng button gọi router.delete() trực tiếp -->
+                                <button
+                                    @click="deleteCustomer(customer.id, customer.name)"
                                     class="text-xs bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200">
                                     Xóa
-                                </Link>
+                                </button>
                             </div>
                         </td>
                     </tr>

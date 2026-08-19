@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCustomerRequest extends FormRequest
 {
@@ -23,11 +24,13 @@ class StoreCustomerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', 'unique:customers,phone'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'name'    => ['required', 'string', 'max:255'],
+            // Rule::unique() builder: bỏ qua bản ghi soft-deleted khi check trùng SĐT
+            'phone'   => ['required', 'string', 'max:20',
+                          Rule::unique('customers', 'phone')->whereNull('deleted_at')],
+            'email'   => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string', 'max:500'],
-            'note' => ['nullable', 'string'],
+            'note'    => ['nullable', 'string'],
         ];
     }
 
