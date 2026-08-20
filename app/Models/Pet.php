@@ -32,13 +32,23 @@ class Pet extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function appoinments(): HasMany
+    public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
     }
 
-    public function medicalRecord(): HasMany
+    public function appoinments(): HasMany
+    {
+        return $this->appointments();
+    }
+
+    public function medicalRecords(): HasMany
     {
         return $this->hasMany(MedicalRecord::class);
+    }
+
+    public function medicalRecord(): HasMany
+    {
+        return $this->medicalRecords();
     }
 }

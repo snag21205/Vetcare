@@ -71,6 +71,19 @@ class PetController extends Controller
     public function destroy(Pet $pet)
     {
         $pet->delete();
-        return redirect()->route('pets.index')->with('success', 'Đã xóa vật nuôi.');
+        return redirect()->route('pets.index')->with('success', 'Đã xóa vật nuôi thành công.');
+    }
+
+    /**
+     * Lấy lịch sử khám bệnh của vật nuôi (JSON API).
+     */
+    public function history(Pet $pet)
+    {
+        $history = $pet->medicalRecords()
+            ->with(['doctor', 'prescriptions.medicine', 'services'])
+            ->latest()
+            ->get();
+
+        return response()->json($history);
     }
 }
