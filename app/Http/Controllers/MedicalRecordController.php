@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMedicalRecordRequest;
+use App\Jobs\GenerateInvoiceJob;
 use App\Models\Appointment;
 use App\Models\MedicalRecord;
 use App\Models\Medicine;
 use App\Models\Pet;
+use App\Models\Service;
 use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,8 +17,8 @@ use Inertia\Response;
 
 class MedicalRecordController extends Controller
 {
-
     public function __construct(protected InventoryService $inventoryService) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -24,7 +26,7 @@ class MedicalRecordController extends Controller
     {
         $search = $request->search;
 
-        $records = MedicalRecord::with(['pet.customer', 'doctor'])
+        $records = MedicalRecord::with(['pet.customer', 'doctor', 'invoice'])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->whereHas('pet', function ($petQuery) use ($search) {
@@ -58,15 +60,21 @@ class MedicalRecordController extends Controller
         }
 
         $pets = Pet::with('customer')->orderBy('name')->get();
+        
         // Lấy danh sách thuốc còn tồn kho
         $medicines = Medicine::where('stock_quantity', '>', 0)
             ->orderBy('name')
             ->get(['id', 'name', 'unit', 'stock_quantity', 'sell_price']);
 
+        // Lấy danh sách dịch vụ
+        $services = Service::orderBy('name')
+            ->get(['id', 'name', 'price', 'description']);
+
         return Inertia::render('MedicalRecords/Create', [
             'appointment' => $appointment,
             'pets'        => $pets,
             'medicines'   => $medicines,
+            'services'    => $services,
         ]);
     }
 
@@ -78,7 +86,7 @@ class MedicalRecordController extends Controller
         $validated = $request->validated();
 
         // Sử dụng DB::transaction để bảo đảm an toàn dữ liệu
-        DB::transaction(function () use ($validated) {
+        $record = DB::transaction(function () use ($validated, $request) {
             // 1. Tạo phiếu khám
             $record = MedicalRecord::create([
                 'appointment_id'       => $validated['appointment_id'] ?? null,
@@ -109,21 +117,51 @@ class MedicalRecordController extends Controller
                 }
             }
 
-            // 3. Nếu có appointment đi kèm, cập nhật status appointment
+            // 3. Gắn các dịch vụ chỉ định (kèm giá tại thời điểm khám)
+            $selectedServiceIds = $validated['services'] ?? [];
+            
+            // Đảm bảo luôn gắn dịch vụ khám tổng quát nếu có trong hệ thống
+            $defaultExamService = Service::where('name', 'like', '%khám tổng quát%')->first();
+            if ($defaultExamService && !in_array($defaultExamService->id, $selectedServiceIds)) {
+                $selectedServiceIds[] = $defaultExamService->id;
+            }
+
+            if (!empty($selectedServiceIds)) {
+                $services = Service::whereIn('id', $selectedServiceIds)->get();
+                foreach ($services as $svc) {
+                    $record->services()->attach($svc->id, ['price' => $svc->price]);
+                }
+            }
+
+            // 4. Nếu có appointment đi kèm, cập nhật status appointment thành completed (đã hoàn tất buổi khám)
             if (!empty($validated['appointment_id'])) {
                 Appointment::where('id', $validated['appointment_id'])->update([
-                    'status' => $validated['status'] === 'completed' ? 'completed' : 'in_progress'
+                    'status' => 'completed'
                 ]);
             }
+
+            // 5. Tự động sinh Hóa đơn nháp
+            GenerateInvoiceJob::dispatchSync($record, $request->user()->id);
+
+            return $record;
         });
-        return redirect()->route('medical-records.index')->with('success', 'Đã lưu phiếu khám và cập nhập kho thuốc thành công!');
+
+        return redirect()->route('medical-records.show', $record->id)
+            ->with('success', 'Đã lưu phiếu khám và tự động sinh hóa đơn thành công!');
     }
+
     /**
      * Display the specified resource.
      */
     public function show(MedicalRecord $medicalRecord): Response
     {
-        $medicalRecord->load(['pet.customer', 'doctor', 'prescriptions.medicine', 'services']);
+        $medicalRecord->load([
+            'pet.customer',
+            'doctor',
+            'prescriptions.medicine',
+            'services',
+            'invoice.creator',
+        ]);
 
         return Inertia::render('MedicalRecords/Show', [
             'record' => $medicalRecord,
@@ -133,10 +171,7 @@ class MedicalRecordController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
-    {
-        //
-    }
+    public function edit(string $id) {}
 
     /**
      * Update the specified resource in storage.
@@ -154,3 +189,4 @@ class MedicalRecordController extends Controller
         //
     }
 }
+

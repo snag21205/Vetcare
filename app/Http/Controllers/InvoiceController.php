@@ -2,63 +2,81 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Invoice;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class InvoiceController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request): Response
     {
-        //
-    }
+        $search = $request->search;
+        $status = $request->status;
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        $invoices = Invoice::with(['customer', 'medicalRecord.pet', 'creator'])
+            ->when($search, function ($query, $search) {
+                $query->where('invoice_number', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                          ->orWhere('phone', 'like', "%{$search}%");
+                    });
+            })
+            ->when($status, fn($q) => $q->where('status', $status))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+        return Inertia::render('Invoices/Index', [
+            'invoices' => $invoices,
+            'filters'  => [
+                'search' => $search,
+                'status' => $status,
+            ],
+            'statuses' => [
+                'unpaid'    => 'Chờ thanh toán',
+                'paid'      => 'Đã thanh toán',
+                'cancelled' => 'Đã hủy',
+            ],
+        ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Invoice $invoice): Response
     {
-        //
+        $invoice->load([
+            'customer',
+            'medicalRecord.pet',
+            'medicalRecord.doctor',
+            'medicalRecord.prescriptions.medicine',
+            'medicalRecord.services',
+            'creator',
+        ]);
+
+        return Inertia::render('Invoices/Show', [
+            'invoice' => $invoice,
+        ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Xác nhận thanh toán hóa đơn.
      */
-    public function edit(string $id)
+    public function pay(Invoice $invoice)
     {
-        //
-    }
+        if ($invoice->status === 'paid') {
+            return back()->with('error', 'Hóa đơn này đã được thanh toán trước đó!');
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        $invoice->update([
+            'status'  => 'paid',
+            'paid_at' => now(),
+        ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return back()->with('success', "Đã xác nhận thanh toán thành công cho hóa đơn {$invoice->invoice_number}!");
     }
 }

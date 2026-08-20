@@ -33,6 +33,10 @@ class StoreMedicalRecordRequest extends FormRequest
             'note'                 => 'nullable|string',
             'status'               => 'required|in:in_progress,completed',
 
+            // Validate mảng dịch vụ đi kèm
+            'services'                    => 'nullable|array',
+            'services.*'                  => 'exists:services,id',
+
             // Validate mảng đơn thuốc
             'prescriptions'               => 'nullable|array',
             'prescriptions.*.medicine_id' => 'required|exists:medicines,id',

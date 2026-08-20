@@ -21,7 +21,7 @@ class AppointmentController extends Controller
         $date = $request->date ?? today()->format('Y-m-d');
         $status = $request->status ?? '';
 
-        $appointments = Appointment::with(['pet.customer', 'doctor'])
+        $appointments = Appointment::with(['pet.customer', 'doctor', 'medicalRecord.invoice'])
             ->whereDate('scheduled_at', $date)
             ->when($status, fn($q) => $q->where('status', $status))
             ->orderBy('scheduled_at')

@@ -18,7 +18,7 @@ class Service extends Model
     protected $casts = ['price' => 'decimal:2'];
     public function medicalRecords(): BelongsToMany
     {
-        return $this->belongsToMany(MedicalRecord::class, 'medical_record_sercvices')
+        return $this->belongsToMany(MedicalRecord::class, 'medical_record_services')
             ->withPivot('price')
             ->withTimestamps();
     }
