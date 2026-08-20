@@ -159,6 +159,13 @@ function changeDay(offset) {
                         ✓ Check-in
                     </button>
 
+                    <!-- Khám bệnh (khi đã check-in) -->
+                    <Link v-if="apt.status === 'checked_in'"
+                        :href="route('medical-records.create', { appointment_id: apt.id })"
+                        class="text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 font-medium flex items-center gap-1 shadow-sm">
+                        🩺 Khám bệnh
+                    </Link>
+
                     <!-- Sửa -->
                     <Link :href="route('appointments.edit', apt.id)"
                         class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded hover:bg-yellow-200">
