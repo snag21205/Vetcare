@@ -1,119 +1,166 @@
 <script setup>
-import { useAuth } from '@/Composables/useAuth';
-import { Link } from '@inertiajs/vue3';
+import { useAuth } from '@/Composables/useAuth'
+import Icon from '@/Components/Icon.vue'
+import { Link } from '@inertiajs/vue3'
 
-const { isAdmin, isVet, isReceptionist, isAccountant, hasRole } = useAuth();
+const { isAdmin, isVet, isReceptionist, isAccountant, role } = useAuth()
 </script>
 
 <template>
-    <aside class="w-64 min-h-screen bg-gray-800 text-white flex flex-col">
+    <aside class="w-64 min-h-screen bg-[#18181B] text-zinc-300 flex flex-col border-r border-zinc-800 selection:bg-indigo-500 selection:text-white">
 
-        <!-- Logo / Tên app -->
-        <div class="p-6 border-b border-gray-700">
-            <h1 class="text-xl font-bold text-white">🐾 VetCare</h1>
-            <!-- Badge hiển thị role hiện tại — hữu ích khi debug -->
-            <span class="text-xs text-gray-400 capitalize">{{ role }}</span>
+        <!-- Header / Brand -->
+        <div class="p-5 border-b border-zinc-800 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-600/30">
+                    <Icon name="pet" size="18" />
+                </div>
+                <div>
+                    <h1 class="text-sm font-bold text-white tracking-tight uppercase">VetCare</h1>
+                    <p class="text-[10px] text-zinc-400 font-mono tracking-wider">CLINIC OS</p>
+                </div>
+            </div>
+            <span class="text-[10px] font-mono uppercase bg-zinc-800 text-zinc-400 border border-zinc-700 px-2 py-0.5 rounded">
+                {{ role }}
+            </span>
         </div>
 
-        <nav class="flex-1 p-4 space-y-1">
+        <!-- Navigation Menu -->
+        <nav class="flex-1 p-3 space-y-6 overflow-y-auto">
 
-            <!-- Dashboard — MỌI role đều thấy -->
-            <Link :href="route('dashboard')"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-                :class="{ 'bg-gray-700': $page.url === '/dashboard' }">
-                📊 Dashboard
-            </Link>
+            <!-- Core -->
+            <div class="space-y-1">
+                <Link :href="route('dashboard')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url === '/dashboard' }">
+                    <Icon name="dashboard" size="17" />
+                    <span>Tổng quan</span>
+                </Link>
+            </div>
 
-            <!-- ===== MENU CHO RECEPTIONIST & ADMIN ===== -->
-            <!-- v-if="isReceptionist || isAdmin": chỉ render nếu là lễ tân HOẶC admin -->
-            <template v-if="isReceptionist || isAdmin">
-                <div class="pt-4 pb-1 text-xs text-gray-500 uppercase tracking-wider">
+            <!-- Receptionist & Admin -->
+            <div v-if="isReceptionist || isAdmin" class="space-y-1">
+                <div class="px-3 text-[11px] font-semibold font-mono text-zinc-400 uppercase tracking-wider">
                     Tiếp đón
                 </div>
 
-                <Link :href="route('customers.index')" class="sidebar-link">
-                    👥 Khách hàng
+                <Link :href="route('customers.index')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/customers') }">
+                    <Icon name="users" size="17" />
+                    <span>Khách hàng</span>
                 </Link>
 
-                <Link :href="route('appointments.index')" class="sidebar-link">
-                    📅 Lịch hẹn
+                <Link :href="route('pets.index')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/pets') }">
+                    <Icon name="pet" size="17" />
+                    <span>Vật nuôi</span>
                 </Link>
 
-                <Link :href="route('invoices.index')" class="sidebar-link">
-                    🧾 Hóa đơn
+                <Link :href="route('appointments.index')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/appointments') }">
+                    <Icon name="calendar" size="17" />
+                    <span>Lịch hẹn</span>
                 </Link>
-            </template>
+            </div>
 
-            <!-- ===== MENU CHO VET & ADMIN ===== -->
-            <template v-if="isVet || isAdmin">
-                <div class="pt-4 pb-1 text-xs text-gray-500 uppercase tracking-wider">
-                    Khám bệnh
+            <!-- Vet & Admin -->
+            <div v-if="isVet || isAdmin" class="space-y-1">
+                <div class="px-3 text-[11px] font-semibold font-mono text-zinc-400 uppercase tracking-wider">
+                    Khám chữa bệnh
                 </div>
 
-                <Link :href="route('appointments.index')" class="sidebar-link">
-                    📋 Lịch khám hôm nay
+                <Link :href="route('medical-records.index')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/medical-records') }">
+                    <Icon name="stethoscope" size="17" />
+                    <span>Hồ sơ khám bệnh</span>
                 </Link>
+            </div>
 
-                <Link :href="route('medical-records.index')" class="sidebar-link">
-                    🩺 Phiếu khám
-                </Link>
-            </template>
-
-            <!-- ===== MENU CHO ACCOUNTANT & ADMIN ===== -->
-            <template v-if="isAccountant || isAdmin">
-                <div class="pt-4 pb-1 text-xs text-gray-500 uppercase tracking-wider">
-                    Tài chính
+            <!-- Finance & Invoices -->
+            <div v-if="isAccountant || isReceptionist || isAdmin" class="space-y-1">
+                <div class="px-3 text-[11px] font-semibold font-mono text-zinc-400 uppercase tracking-wider">
+                    Tài chính & Thu ngân
                 </div>
 
-                <Link :href="route('invoices.index')" class="sidebar-link">
-                    💰 Hóa đơn
+                <Link :href="route('invoices.index')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/invoices') }">
+                    <Icon name="invoice" size="17" />
+                    <span>Hóa đơn</span>
                 </Link>
 
-                <Link :href="route('expense-vouchers.index')" class="sidebar-link">
-                    📑 Phiếu chi
+                <Link v-if="isAccountant || isAdmin" :href="route('expense-vouchers.index')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/expense-vouchers') }">
+                    <Icon name="document" size="17" />
+                    <span>Phiếu chi</span>
                 </Link>
 
-                <Link :href="route('reports.revenue')" class="sidebar-link">
-                    📈 Báo cáo
+                <Link v-if="isAccountant || isAdmin" :href="route('reports.revenue')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/reports') }">
+                    <Icon name="chart" size="17" />
+                    <span>Báo cáo doanh thu</span>
                 </Link>
-            </template>
+            </div>
 
-            <!-- ===== MENU CHỈ ADMIN ===== -->
-            <!-- v-if="isAdmin": chỉ admin mới thấy mục này -->
-            <template v-if="isAdmin">
-                <div class="pt-4 pb-1 text-xs text-gray-500 uppercase tracking-wider">
-                    Quản trị
+            <!-- Admin Settings -->
+            <div v-if="isAdmin" class="space-y-1">
+                <div class="px-3 text-[11px] font-semibold font-mono text-zinc-400 uppercase tracking-wider">
+                    Quản trị hệ thống
                 </div>
 
-                <Link :href="route('medicines.index')" class="sidebar-link">
-                    💊 Quản lý thuốc
+                <Link :href="route('medicines.index')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/medicines') }">
+                    <Icon name="medicine" size="17" />
+                    <span>Kho thuốc</span>
                 </Link>
 
-                <Link :href="route('services.index')" class="sidebar-link">
-                    🔬 Dịch vụ
+                <Link :href="route('services.index')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/services') }">
+                    <Icon name="service" size="17" />
+                    <span>Bảng giá dịch vụ</span>
                 </Link>
 
-                <Link :href="route('users.index')" class="sidebar-link">
-                    👤 Tài khoản
+                <Link :href="route('users.index')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/users') }">
+                    <Icon name="user" size="17" />
+                    <span>Tài khoản nhân viên</span>
                 </Link>
-            </template>
+            </div>
 
         </nav>
 
-        <!-- Footer: thông tin user + nút logout -->
-        <div class="p-4 border-t border-gray-700">
-            <div class="text-sm text-gray-300 mb-2">{{ $page.props.auth.user?.name }}</div>
-            <Link :href="route('logout')" method="post" as="button" class="text-xs text-red-400 hover:text-red-300">
-                Đăng xuất
-            </Link>
+        <!-- Footer: User info & logout -->
+        <div class="p-3 border-t border-zinc-800 bg-zinc-900/50">
+            <div class="flex items-center justify-between px-2 py-1.5">
+                <div class="truncate">
+                    <p class="text-xs font-semibold text-white truncate">{{ $page.props.auth.user?.name }}</p>
+                    <p class="text-[10px] text-zinc-400 truncate">{{ $page.props.auth.user?.email }}</p>
+                </div>
+                <Link :href="route('logout')" method="post" as="button"
+                    class="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-zinc-800 rounded transition-colors"
+                    title="Đăng xuất">
+                    <Icon name="logout" size="16" />
+                </Link>
+            </div>
         </div>
 
     </aside>
 </template>
 
 <style scoped>
-/* scoped: CSS chỉ áp dụng trong component này, không ảnh hưởng component khác */
 .sidebar-link {
-    @apply flex items-center gap-3 px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors text-sm;
+    @apply flex items-center gap-2.5 px-3 py-2 rounded-md text-xs text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/80 transition-colors;
+}
+.sidebar-link-active {
+    @apply bg-indigo-600/15 text-indigo-400 font-semibold border-l-2 border-indigo-500 rounded-l-none pl-2.5;
 }
 </style>

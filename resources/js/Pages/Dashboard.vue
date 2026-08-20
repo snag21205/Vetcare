@@ -1,13 +1,11 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-// Head là component để set <title> của trang (SEO)
-import { Head } from '@inertiajs/vue3'
+import StatCard from '@/Components/StatCard.vue'
+import Icon from '@/Components/Icon.vue'
+import { Head, Link } from '@inertiajs/vue3'
 import { useAuth } from '@/Composables/useAuth.js'
 
-// defineProps: khai báo props nhận từ Inertia Controller
-// Mỗi prop tương ứng với key trong array của Inertia::render()
 const props = defineProps({
-    // Dữ liệu thống kê cho từng role — Controller sẽ truyền xuống
     stats: Object,
     todayAppointments: Array,
     pendingInvoices: Array,
@@ -15,44 +13,74 @@ const props = defineProps({
 })
 
 const { isAdmin, isReceptionist, isVet, isAccountant, user } = useAuth()
+
+const statusBadgeClass = (status) => {
+    const classes = {
+        pending:    'bg-amber-50 text-amber-700 border border-amber-200',
+        confirmed:  'bg-sky-50 text-sky-700 border border-sky-200',
+        checked_in: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+        completed:  'bg-zinc-100 text-zinc-700 border border-zinc-200',
+        cancelled:  'bg-rose-50 text-rose-700 border border-rose-200',
+        no_show:    'bg-orange-50 text-orange-700 border border-orange-200',
+    }
+    return classes[status] ?? 'bg-gray-100 text-gray-600'
+}
+
+const statusLabel = (status) => {
+    const labels = {
+        pending:    'Chờ xác nhận',
+        confirmed:  'Đã xác nhận',
+        checked_in: 'Đã check-in',
+        completed:  'Hoàn thành',
+        cancelled:  'Đã hủy',
+        no_show:    'Không đến',
+    }
+    return labels[status] ?? status
+}
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(amount ?? 0)
+}
 </script>
 
 <template>
+    <Head title="Tổng quan" />
 
-    <Head title="Dashboard" />
-
-    <!-- Dùng AuthenticatedLayout làm khung -->
     <AuthenticatedLayout>
-
         <!-- Tiêu đề chào -->
         <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">
-                Xin chào, {{ user?.name }} 👋
+            <h1 class="text-xl font-bold text-gray-900 tracking-tight">
+                Xin chào, {{ user?.name }}
             </h1>
-            <p class="text-gray-500 text-sm mt-1">
+            <p class="text-xs text-gray-500 font-mono mt-0.5">
                 {{ new Date().toLocaleDateString('vi-VN', {
-                    weekday: 'long', year: 'numeric', month: 'long', day:
-                'numeric' }) }}
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                }) }}
             </p>
         </div>
 
         <!-- ====== DASHBOARD CHO ADMIN ====== -->
         <template v-if="isAdmin">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <StatCard title="Tổng khách hàng" :value="stats?.totalCustomers" icon="👥" color="blue" />
-                <StatCard title="Lịch hẹn hôm nay" :value="stats?.todayAppointments" icon="📅" color="green" />
-                <StatCard title="Doanh thu tháng" :value="stats?.monthRevenue" icon="💰" color="yellow"
-                    format="currency" />
-                <StatCard title="Thuốc sắp hết" :value="stats?.lowStockCount" icon="⚠️" color="red" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <StatCard title="Tổng khách hàng" :value="stats?.totalCustomers" icon="users" color="indigo" />
+                <StatCard title="Lịch hẹn hôm nay" :value="stats?.todayAppointments" icon="calendar" color="blue" />
+                <StatCard title="Doanh thu tháng" :value="stats?.monthRevenue" icon="chart" color="green" format="currency" />
+                <StatCard title="Thuốc sắp hết" :value="stats?.lowStockCount" icon="pill" color="red" />
             </div>
 
             <!-- Cảnh báo thuốc sắp hết -->
-            <div v-if="lowStockMedicines?.length > 0" class="bg-red-50 border border-red-200 rounded-lg p-4">
-                <h3 class="font-semibold text-red-800 mb-2">⚠️ Thuốc sắp hết kho</h3>
-                <ul class="space-y-1">
-                    <li v-for="med in lowStockMedicines" :key="med.id" class="text-sm text-red-700">
-                        {{ med.name }} — còn <strong>{{ med.stock_quantity }} {{ med.unit }}</strong>
-                        (ngưỡng: {{ med.low_stock_threshold }})
+            <div v-if="lowStockMedicines?.length > 0" class="bg-rose-50/75 border border-rose-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center gap-2 mb-2 text-rose-800 font-semibold text-xs uppercase font-mono">
+                    <Icon name="alert" size="15" />
+                    <span>Cảnh báo tồn kho: Thuốc sắp hết</span>
+                </div>
+                <ul class="space-y-1.5 text-xs text-rose-700">
+                    <li v-for="med in lowStockMedicines" :key="med.id" class="flex items-center justify-between">
+                        <span>{{ med.name }}</span>
+                        <span class="font-mono font-medium">Còn <strong>{{ med.stock_quantity }} {{ med.unit }}</strong> (ngưỡng: {{ med.low_stock_threshold }})</span>
                     </li>
                 </ul>
             </div>
@@ -60,30 +88,40 @@ const { isAdmin, isReceptionist, isVet, isAccountant, user } = useAuth()
 
         <!-- ====== DASHBOARD CHO LỄ TÂN ====== -->
         <template v-if="isReceptionist">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatCard title="Lịch hẹn hôm nay" :value="stats?.todayAppointments" icon="📅" color="blue" />
-                <StatCard title="Đã check-in" :value="stats?.checkedIn" icon="✅" color="green" />
-                <StatCard title="Chờ thanh toán" :value="stats?.pendingPayments" icon="💳" color="yellow" />
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <StatCard title="Lịch hẹn hôm nay" :value="stats?.todayAppointments" icon="calendar" color="indigo" />
+                <StatCard title="Đã check-in" :value="stats?.checkedIn" icon="check-circle" color="green" />
+                <StatCard title="Chờ thanh toán" :value="stats?.pendingPayments" icon="invoice" color="yellow" />
             </div>
 
             <!-- Danh sách lịch hẹn hôm nay -->
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="font-semibold text-gray-800 mb-4">📅 Lịch hẹn hôm nay</h3>
-                <div v-if="!todayAppointments?.length" class="text-gray-400 text-center py-8">
+            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
+                    <h3 class="text-xs font-bold text-gray-900 uppercase font-mono flex items-center gap-1.5">
+                        <Icon name="calendar" size="14" class="text-indigo-600" />
+                        <span>Lịch tiếp đón hôm nay</span>
+                    </h3>
+                    <Link :href="route('appointments.index')" class="text-xs text-indigo-600 hover:underline font-medium">
+                        Xem tất cả →
+                    </Link>
+                </div>
+
+                <div v-if="!todayAppointments?.length" class="text-gray-400 text-center py-8 text-xs">
                     Không có lịch hẹn nào hôm nay
                 </div>
-                <div v-for="apt in todayAppointments" :key="apt.id"
-                    class="flex items-center justify-between py-3 border-b last:border-0">
-                    <div>
-                        <p class="font-medium">{{ apt.pet?.name }} ({{ apt.pet?.customer?.name }})</p>
-                        <p class="text-sm text-gray-500">{{ apt.reason }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-medium">{{ apt.scheduled_at }}</p>
-                        <!-- Badge trạng thái với màu khác nhau -->
-                        <span :class="statusBadgeClass(apt.status)" class="text-xs px-2 py-1 rounded-full">
-                            {{ apt.status }}
-                        </span>
+
+                <div v-else class="divide-y divide-gray-100 text-xs">
+                    <div v-for="apt in todayAppointments" :key="apt.id"
+                        class="flex items-center justify-between py-2.5">
+                        <div>
+                            <p class="font-semibold text-gray-900">{{ apt.pet?.name }} <span class="text-gray-500 font-normal">({{ apt.pet?.customer?.name }})</span></p>
+                            <p class="text-gray-500 text-[11px] mt-0.5">{{ apt.reason }}</p>
+                        </div>
+                        <div class="text-right">
+                            <span :class="statusBadgeClass(apt.status)" class="text-[11px] px-2 py-0.5 rounded-full font-mono font-medium">
+                                {{ statusLabel(apt.status) }}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,82 +129,87 @@ const { isAdmin, isReceptionist, isVet, isAccountant, user } = useAuth()
 
         <!-- ====== DASHBOARD CHO BÁC SĨ ====== -->
         <template v-if="isVet">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatCard title="Bệnh nhân hôm nay" :value="stats?.myTodayPatients" icon="🐾" color="blue" />
-                <StatCard title="Đang chờ khám" :value="stats?.waitingPatients" icon="⏳" color="yellow" />
-                <StatCard title="Đã khám xong" :value="stats?.completedToday" icon="✅" color="green" />
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <StatCard title="Bệnh nhân hôm nay" :value="stats?.myTodayPatients" icon="pet" color="indigo" />
+                <StatCard title="Đang chờ khám" :value="stats?.waitingPatients" icon="clock" color="yellow" />
+                <StatCard title="Đã khám xong" :value="stats?.completedToday" icon="check-circle" color="green" />
             </div>
 
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="font-semibold text-gray-800 mb-4">🐾 Bệnh nhân chờ khám</h3>
-                <div v-if="!todayAppointments?.length" class="text-gray-400 text-center py-8">
+            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
+                    <h3 class="text-xs font-bold text-gray-900 uppercase font-mono flex items-center gap-1.5">
+                        <Icon name="stethoscope" size="14" class="text-indigo-600" />
+                        <span>Bệnh nhân chờ khám</span>
+                    </h3>
+                    <Link :href="route('appointments.index')" class="text-xs text-indigo-600 hover:underline font-medium">
+                        Lịch hẹn hôm nay →
+                    </Link>
+                </div>
+
+                <div v-if="!todayAppointments?.length" class="text-gray-400 text-center py-8 text-xs">
                     Không có bệnh nhân nào đang chờ
                 </div>
-                <div v-for="apt in todayAppointments" :key="apt.id"
-                    class="flex items-center justify-between py-3 border-b last:border-0">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl">
-                            {{ apt.pet?.species === 'chó' ? '🐕' : '🐈' }}
+
+                <div v-else class="divide-y divide-gray-100 text-xs">
+                    <div v-for="apt in todayAppointments" :key="apt.id"
+                        class="flex items-center justify-between py-2.5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                                <Icon name="pet" size="14" />
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-900">{{ apt.pet?.name }}</p>
+                                <p class="text-gray-500 text-[11px]">{{ apt.pet?.breed ?? apt.pet?.species }} · {{ apt.reason }}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-medium">{{ apt.pet?.name }}</p>
-                            <p class="text-sm text-gray-500">{{ apt.pet?.breed }} · {{ apt.reason }}</p>
-                        </div>
+                        <Link v-if="apt.status === 'checked_in'"
+                            :href="route('medical-records.create', { appointment_id: apt.id })"
+                            class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold px-3 py-1.5 rounded-md shadow-xs transition-colors">
+                            <Icon name="stethoscope" size="12" />
+                            <span>Vào khám</span>
+                        </Link>
                     </div>
-                    <a :href="`/appointments/${apt.id}/examine`"
-                        class="bg-blue-500 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-600">
-                        Bắt đầu khám
-                    </a>
                 </div>
             </div>
         </template>
 
         <!-- ====== DASHBOARD CHO KẾ TOÁN ====== -->
         <template v-if="isAccountant">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <StatCard title="Doanh thu hôm nay" :value="stats?.todayRevenue" icon="💰" color="green"
-                    format="currency" />
-                <StatCard title="Hóa đơn chưa TT" :value="stats?.pendingCount" icon="📋" color="yellow" />
-                <StatCard title="Doanh thu tháng" :value="stats?.monthRevenue" icon="📈" color="blue"
-                    format="currency" />
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <StatCard title="Doanh thu hôm nay" :value="stats?.todayRevenue" icon="chart" color="green" format="currency" />
+                <StatCard title="Hóa đơn chưa TT" :value="stats?.pendingCount" icon="invoice" color="yellow" />
+                <StatCard title="Doanh thu tháng" :value="stats?.monthRevenue" icon="chart" color="indigo" format="currency" />
             </div>
 
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="font-semibold text-gray-800 mb-4">📋 Hóa đơn chờ thanh toán</h3>
-                <div v-for="inv in pendingInvoices" :key="inv.id"
-                    class="flex justify-between items-center py-3 border-b last:border-0">
-                    <div>
-                        <p class="font-medium">{{ inv.invoice_number }}</p>
-                        <p class="text-sm text-gray-500">{{ inv.customer?.name }}</p>
+            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
+                    <h3 class="text-xs font-bold text-gray-900 uppercase font-mono flex items-center gap-1.5">
+                        <Icon name="invoice" size="14" class="text-indigo-600" />
+                        <span>Hóa đơn chờ thanh toán</span>
+                    </h3>
+                    <Link :href="route('invoices.index')" class="text-xs text-indigo-600 hover:underline font-medium">
+                        Tất cả hóa đơn →
+                    </Link>
+                </div>
+
+                <div v-if="!pendingInvoices?.length" class="text-gray-400 text-center py-8 text-xs">
+                    Không có hóa đơn nào đang chờ thanh toán
+                </div>
+
+                <div v-else class="divide-y divide-gray-100 text-xs">
+                    <div v-for="inv in pendingInvoices" :key="inv.id"
+                        class="flex justify-between items-center py-2.5">
+                        <div>
+                            <p class="font-bold text-indigo-600 font-mono">{{ inv.invoice_number }}</p>
+                            <p class="text-gray-500 text-[11px] mt-0.5">{{ inv.customer?.name }}</p>
+                        </div>
+                        <p class="font-bold font-mono text-gray-900">
+                            {{ formatCurrency(inv.total_amount) }}
+                        </p>
                     </div>
-                    <p class="font-bold text-gray-800">
-                        {{ formatCurrency(inv.total_amount) }}
-                    </p>
                 </div>
             </div>
         </template>
 
     </AuthenticatedLayout>
 </template>
-
-<script>
-// Helper functions
-function statusBadgeClass(status) {
-    const classes = {
-        pending: 'bg-yellow-100 text-yellow-800',
-        confirmed: 'bg-blue-100 text-blue-800',
-        checked_in: 'bg-green-100 text-green-800',
-        completed: 'bg-gray-100 text-gray-800',
-        cancelled: 'bg-red-100 text-red-800',
-        no_show: 'bg-red-100 text-red-800',
-    }
-    return classes[status] ?? 'bg-gray-100 text-gray-600'
-}
-
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-    }).format(amount)
-}
-</script>

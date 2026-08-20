@@ -1,34 +1,43 @@
 <script setup>
-// defineProps: khai báo props component này nhận
-// Mỗi prop có thể khai báo kiểu (String, Number, Boolean...)
-defineProps({
+import Icon from '@/Components/Icon.vue'
+
+const props = defineProps({
     title: String,
-    value: [Number, String],  // Chấp nhận cả Number lẫn String
-    icon: String,
+    value: [Number, String],
+    icon: {
+        type: String,
+        default: 'chart'
+    },
     color: {
         type: String,
-        default: 'blue'        // Giá trị mặc định nếu không truyền vào
+        default: 'indigo'
     },
     format: {
         type: String,
-        default: 'number'      // 'number' hoặc 'currency'
+        default: 'number'
     },
 })
+
+const colorStyles = {
+    indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+    blue:   'bg-sky-50 text-sky-600 border-sky-100',
+    green:  'bg-emerald-50 text-emerald-600 border-emerald-100',
+    yellow: 'bg-amber-50 text-amber-600 border-amber-100',
+    red:    'bg-rose-50 text-rose-600 border-rose-100',
+}
 </script>
 
 <template>
-    <div class="bg-white rounded-xl shadow p-6 flex items-center gap-4">
-        <!-- Icon với màu nền theo prop color -->
-        <div :class="`bg-${color}-100`"
-            class="w-14 h-14 rounded-full flex items-center justify-center text-2xl flex-shrink-0">
-            {{ icon }}
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 flex items-center gap-3.5">
+        <div :class="colorStyles[color] ?? colorStyles.indigo"
+            class="w-10 h-10 rounded-lg flex items-center justify-center border shrink-0">
+            <Icon :name="icon" size="18" />
         </div>
-        <div>
-            <p class="text-sm text-gray-500">{{ title }}</p>
-            <p class="text-2xl font-bold text-gray-800 mt-1">
-                <!-- Hiển thị theo format: số bình thường hoặc tiền tệ -->
+        <div class="min-w-0">
+            <p class="text-[11px] font-medium text-gray-500 truncate uppercase font-mono">{{ title }}</p>
+            <p class="text-lg font-bold font-mono text-gray-900 mt-0.5 truncate">
                 <template v-if="format === 'currency'">
-                    {{ value ? new Intl.NumberFormat('vi-VN').format(value) + '₫' : '0₫' }}
+                    {{ value ? new Intl.NumberFormat('vi-VN').format(value) + ' ₫' : '0 ₫' }}
                 </template>
                 <template v-else>
                     {{ value ?? 0 }}

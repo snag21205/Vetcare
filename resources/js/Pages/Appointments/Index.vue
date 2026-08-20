@@ -1,5 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import Icon from '@/Components/Icon.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, watch } from 'vue'
 
@@ -9,26 +10,24 @@ const props = defineProps({
     statuses: Object,
 })
 
-// ref(): khởi tạo reactive từ filter hiện tại
-const date = ref(props.filters.date)
+const date   = ref(props.filters.date)
 const status = ref(props.filters.status)
 
-// watch() nhiều biến cùng lúc: dùng mảng
 watch([date, status], ([newDate, newStatus]) => {
     router.get(route('appointments.index'), {
-        date: newDate,
+        date:   newDate,
         status: newStatus,
     }, { preserveState: true, replace: true })
 })
 
-// Map status → màu badge
+// Refined status badges matching DESIGN.md
 const statusConfig = {
-    pending: { label: 'Chờ xác nhận', class: 'bg-yellow-100 text-yellow-800' },
-    confirmed: { label: 'Đã xác nhận', class: 'bg-blue-100 text-blue-800' },
-    checked_in: { label: 'Đã check-in', class: 'bg-green-100 text-green-800' },
-    completed: { label: 'Hoàn thành', class: 'bg-gray-100 text-gray-700' },
-    cancelled: { label: 'Đã hủy', class: 'bg-red-100 text-red-700' },
-    no_show: { label: 'Không đến', class: 'bg-orange-100 text-orange-700' },
+    pending:    { label: 'Chờ xác nhận', class: 'bg-amber-50 text-amber-700 border border-amber-200' },
+    confirmed:  { label: 'Đã xác nhận',  class: 'bg-sky-50 text-sky-700 border border-sky-200' },
+    checked_in: { label: 'Đã check-in',  class: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
+    completed:  { label: 'Hoàn thành',   class: 'bg-zinc-100 text-zinc-700 border border-zinc-200' },
+    cancelled:  { label: 'Đã hủy',       class: 'bg-rose-50 text-rose-700 border border-rose-200' },
+    no_show:    { label: 'Không đến',    class: 'bg-orange-50 text-orange-700 border border-orange-200' },
 }
 
 function confirmAppointment(id) {
@@ -40,11 +39,10 @@ function checkIn(id) {
 }
 
 function cancelAppointment(id) {
-    if (!confirm('Hủy lịch hẹn này?')) return
+    if (!confirm('Bạn có chắc chắn muốn hủy lịch hẹn này?')) return
     router.delete(route('appointments.destroy', id))
 }
 
-// Điều hướng ngày: hôm qua / ngày mai
 function changeDay(offset) {
     const d = new Date(date.value)
     d.setDate(d.getDate() + offset)
@@ -53,132 +51,172 @@ function changeDay(offset) {
 </script>
 
 <template>
-
     <Head title="Lịch hẹn" />
-    <AuthenticatedLayout>
 
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">📅 Lịch hẹn</h1>
+    <AuthenticatedLayout>
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900 tracking-tight">Quản lý Lịch hẹn</h1>
+                <p class="text-xs text-gray-500 mt-0.5">Theo dõi lịch khám bệnh và điều phối tiếp đón bệnh nhân</p>
+            </div>
             <Link :href="route('appointments.create')"
-                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                + Đặt lịch mới
+                class="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors">
+                <Icon name="plus" size="16" />
+                <span>Đặt lịch hẹn</span>
             </Link>
         </div>
 
-        <!-- Filter bar -->
-        <div class="flex flex-wrap items-center gap-3 mb-6 bg-white p-4 rounded-xl shadow">
+        <!-- Filter Bar -->
+        <div class="flex flex-wrap items-center gap-2.5 mb-6 bg-white p-3.5 rounded-lg border border-gray-200 shadow-sm text-xs">
             <!-- Điều hướng ngày -->
-            <button @click="changeDay(-1)" class="px-3 py-2 border rounded-lg hover:bg-gray-50 text-gray-600">
-                ← Hôm qua
-            </button>
+            <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white shadow-xs">
+                <button @click="changeDay(-1)"
+                    class="px-2.5 py-1.5 hover:bg-gray-50 text-gray-600 border-r border-gray-200 transition-colors"
+                    title="Hôm trước">
+                    <Icon name="chevron-left" size="14" />
+                </button>
 
-            <input type="date" v-model="date"
-                class="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="date" v-model="date"
+                    class="px-3 py-1.5 text-xs text-gray-900 font-mono border-none focus:outline-none focus:ring-0 bg-transparent" />
 
-            <button @click="changeDay(1)" class="px-3 py-2 border rounded-lg hover:bg-gray-50 text-gray-600">
-                Ngày mai →
-            </button>
+                <button @click="changeDay(1)"
+                    class="px-2.5 py-1.5 hover:bg-gray-50 text-gray-600 border-l border-gray-200 transition-colors"
+                    title="Hôm sau">
+                    <Icon name="chevron-right" size="14" />
+                </button>
+            </div>
 
             <button @click="date = new Date().toISOString().split('T')[0]"
-                class="px-3 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 text-sm">
+                class="px-3 py-1.5 bg-gray-100 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-200 font-medium transition-colors">
                 Hôm nay
             </button>
 
-            <!-- Filter trạng thái -->
+            <!-- Lọc trạng thái -->
             <select v-model="status"
-                class="border rounded-lg px-9 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                class="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
                 <option value="">Tất cả trạng thái</option>
                 <option v-for="(label, key) in statuses" :key="key" :value="key">
                     {{ label }}
                 </option>
             </select>
 
-            <!-- Tổng số -->
-            <span class="ml-auto text-sm text-gray-500">
+            <span class="ml-auto text-xs text-gray-400 font-mono">
                 {{ appointments.length }} lịch hẹn
             </span>
         </div>
 
         <!-- Danh sách lịch hẹn -->
-        <div class="space-y-3">
+        <div class="space-y-2.5">
 
             <!-- Empty state -->
             <div v-if="appointments.length === 0"
-                class="bg-white rounded-xl shadow px-12 py-6 text-center text-gray-400">
-                <p class="text-4xl mb-3">📭</p>
-                <p>Không có lịch hẹn nào trong ngày này</p>
+                class="bg-white rounded-lg border border-gray-200 shadow-sm p-12 text-center text-gray-400">
+                <Icon name="calendar" size="36" class="mx-auto text-gray-300 mb-2" />
+                <p class="text-xs font-medium text-gray-600">Không có lịch hẹn nào trong ngày đã chọn</p>
+                <p class="text-[11px] text-gray-400 mt-0.5">Chọn ngày khác hoặc tạo lịch hẹn mới cho khách hàng.</p>
             </div>
 
-            <!-- Card mỗi lịch hẹn -->
+            <!-- Card từng lịch hẹn -->
             <div v-for="apt in appointments" :key="apt.id"
-                class="bg-white rounded-xl shadow p-5 flex items-center justify-between gap-4">
+                class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-gray-300 transition-all">
 
-                <!-- Giờ hẹn -->
-                <div class="text-center w-16 flex-shrink-0">
-                    <p class="text-2xl font-bold text-blue-600">
-                        {{ new Date(apt.scheduled_at).toLocaleTimeString('vi-VN', {
-                            hour: '2-digit', minute: '2-digit'
-                        }) }}
-                    </p>
-                </div>
-
-                <!-- Thông tin thú cưng + chủ -->
-                <div class="flex-1">
-                    <p class="font-semibold text-gray-800">
-                        {{ apt.pet?.species === 'chó' ? '🐕' : '🐈' }}
-                        {{ apt.pet?.name }}
-                        <span class="text-gray-400 font-normal text-sm">
-                            ({{ apt.pet?.customer?.name }})
+                <div class="flex items-start gap-4">
+                    <!-- Giờ hẹn -->
+                    <div class="w-16 h-14 rounded-lg bg-gray-50 border border-gray-100 flex flex-col items-center justify-center shrink-0">
+                        <span class="text-sm font-bold font-mono text-indigo-600">
+                            {{ new Date(apt.scheduled_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) }}
                         </span>
-                    </p>
-                    <p class="text-sm text-gray-500 mt-1">{{ apt.reason }}</p>
-                    <p v-if="apt.doctor" class="text-xs text-blue-500 mt-1">
-                        🩺 BS. {{ apt.doctor.name }}
-                    </p>
+                        <span class="text-[10px] text-gray-400 font-mono">Giờ hẹn</span>
+                    </div>
+
+                    <!-- Thông tin thú cưng & chủ -->
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-gray-900 text-sm">{{ apt.pet?.name }}</span>
+                            <span class="text-xs text-gray-500 font-normal">({{ apt.pet?.species }})</span>
+                            <span class="text-xs text-gray-400">·</span>
+                            <span class="text-xs text-gray-700 font-medium">{{ apt.pet?.customer?.name }}</span>
+                            <span class="text-xs text-gray-400 font-mono">({{ apt.pet?.customer?.phone }})</span>
+                        </div>
+                        <p class="text-xs text-gray-600">{{ apt.reason }}</p>
+                        <p v-if="apt.doctor" class="text-[11px] text-indigo-600 font-medium flex items-center gap-1">
+                            <Icon name="stethoscope" size="12" />
+                            <span>BS. {{ apt.doctor.name }}</span>
+                        </p>
+                    </div>
                 </div>
 
-                <!-- Badge trạng thái -->
-                <span :class="statusConfig[apt.status]?.class"
-                    class="text-xs px-3 py-1 rounded-full font-medium flex-shrink-0">
-                    {{ statusConfig[apt.status]?.label }}
-                </span>
+                <!-- Trạng thái & Action Buttons -->
+                <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                    <!-- Badges -->
+                    <div class="flex items-center gap-1.5">
+                        <span :class="statusConfig[apt.status]?.class"
+                            class="text-[11px] px-2.5 py-0.5 rounded-full font-medium font-mono">
+                            {{ statusConfig[apt.status]?.label }}
+                        </span>
+                        <span v-if="apt.medical_record && apt.medical_record.status === 'in_progress'"
+                            class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium font-mono">
+                            Theo dõi
+                        </span>
+                    </div>
 
-                <!-- Action buttons -->
-                <div class="flex gap-2 flex-shrink-0">
+                    <!-- Actions -->
+                    <div class="flex items-center gap-1.5">
+                        <!-- Xác nhận -->
+                        <button v-if="apt.status === 'pending'" @click="confirmAppointment(apt.id)"
+                            class="inline-flex items-center gap-1 text-xs bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 px-2.5 py-1 rounded-md font-medium transition-colors">
+                            <Icon name="check" size="13" />
+                            <span>Xác nhận</span>
+                        </button>
 
-                    <!-- Xác nhận (chỉ khi pending) -->
-                    <button v-if="apt.status === 'pending'" @click="confirmAppointment(apt.id)"
-                        class="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-                        ✓ Xác nhận
-                    </button>
+                        <!-- Check-in -->
+                        <button v-if="apt.status === 'confirmed'" @click="checkIn(apt.id)"
+                            class="inline-flex items-center gap-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-md font-medium shadow-xs transition-colors">
+                            <Icon name="check" size="13" />
+                            <span>Check-in</span>
+                        </button>
 
-                    <!-- Check-in (chỉ khi confirmed) -->
-                    <button v-if="apt.status === 'confirmed'" @click="checkIn(apt.id)"
-                        class="text-xs bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
-                        ✓ Check-in
-                    </button>
+                        <!-- Khám bệnh -->
+                        <Link v-if="apt.status === 'checked_in' && !apt.medical_record"
+                            :href="route('medical-records.create', { appointment_id: apt.id })"
+                            class="inline-flex items-center gap-1 text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md font-semibold shadow-xs transition-colors">
+                            <Icon name="stethoscope" size="13" />
+                            <span>Khám bệnh</span>
+                        </Link>
 
-                    <!-- Khám bệnh (khi đã check-in) -->
-                    <Link v-if="apt.status === 'checked_in'"
-                        :href="route('medical-records.create', { appointment_id: apt.id })"
-                        class="text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 font-medium flex items-center gap-1 shadow-sm">
-                        🩺 Khám bệnh
-                    </Link>
+                        <!-- Xem bệnh án & Hóa đơn -->
+                        <template v-if="apt.medical_record">
+                            <Link :href="route('medical-records.show', apt.medical_record.id)"
+                                class="inline-flex items-center gap-1 text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 px-2.5 py-1 rounded-md font-medium transition-colors">
+                                <Icon name="document" size="13" />
+                                <span>Bệnh án</span>
+                            </Link>
+                            <Link v-if="apt.medical_record.invoice" :href="route('invoices.show', apt.medical_record.invoice.id)"
+                                class="inline-flex items-center gap-1 text-[11px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-md font-medium transition-colors">
+                                <Icon name="invoice" size="13" />
+                                <span>Hóa đơn</span>
+                            </Link>
+                        </template>
 
-                    <!-- Sửa -->
-                    <Link :href="route('appointments.edit', apt.id)"
-                        class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded hover:bg-yellow-200">
-                        Sửa
-                    </Link>
+                        <!-- Sửa -->
+                        <Link v-if="!['completed', 'cancelled'].includes(apt.status)"
+                            :href="route('appointments.edit', apt.id)"
+                            class="p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                            title="Chỉnh sửa">
+                            <Icon name="edit" size="14" />
+                        </Link>
 
-                    <!-- Hủy (không hiện nếu đã completed/cancelled) -->
-                    <button v-if="!['completed', 'cancelled', 'no_show'].includes(apt.status)"
-                        @click="cancelAppointment(apt.id)"
-                        class="text-xs bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200">
-                        Hủy
-                    </button>
+                        <!-- Hủy -->
+                        <button v-if="!['completed', 'cancelled', 'no_show'].includes(apt.status)"
+                            @click="cancelAppointment(apt.id)"
+                            class="p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                            title="Hủy lịch hẹn">
+                            <Icon name="x" size="14" />
+                        </button>
+                    </div>
                 </div>
+
             </div>
         </div>
     </AuthenticatedLayout>
