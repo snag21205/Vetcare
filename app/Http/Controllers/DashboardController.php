@@ -24,6 +24,8 @@ class DashboardController extends Controller
         $lowStockMedicines  = null;
 
         // Tùy role mà query khác nhau
+        $expiringMedicines  = null;
+
         if ($user->hasRole('admin')) {
             $stats = [
                 'totalCustomers'    => Customer::count(),
@@ -37,6 +39,11 @@ class DashboardController extends Controller
             // Lấy danh sách thuốc sắp hết kho
             $lowStockMedicines = Medicine::whereColumn('stock_quantity', '<=', 'low_stock_threshold')
                 ->get(['id', 'name', 'unit', 'stock_quantity', 'low_stock_threshold']);
+
+            // Lấy danh sách thuốc sắp hết hạn
+            $expiringMedicines = Medicine::whereNotNull('expiry_date')
+                ->whereDate('expiry_date', '<=', now()->addDays(30))
+                ->get(['id', 'name', 'unit', 'expiry_date']);
         } elseif ($user->hasRole('receptionist')) {
             $todayAppointments = Appointment::with(['pet.customer', 'pet'])
                 ->whereDate('scheduled_at', today())
@@ -85,14 +92,12 @@ class DashboardController extends Controller
             ];
         }
 
-        // Inertia::render() trả về response cho Vue
-        // Tên 'Dashboard' = file resources/js/Pages/Dashboard.vue
-        // Array thứ 2 = props truyền xuống Vue component
         return Inertia::render('Dashboard', [
             'stats'             => $stats,
             'todayAppointments' => $todayAppointments,
             'pendingInvoices'   => $pendingInvoices,
             'lowStockMedicines' => $lowStockMedicines,
+            'expiringMedicines' => $expiringMedicines,
         ]);
     }
 }

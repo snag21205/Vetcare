@@ -1,0 +1,192 @@
+<script setup>
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import Icon from '@/Components/Icon.vue'
+import { Head, router } from '@inertiajs/vue3'
+import { ref, watch, onMounted, nextTick } from 'vue'
+import Chart from 'chart.js/auto'
+
+const props = defineProps({
+    diseases: Array,
+    totalCases: Number,
+    speciesBreakdown: Array,
+    selectedSpecies: String,
+})
+
+const speciesFilter = ref(props.selectedSpecies ?? '')
+
+watch(speciesFilter, (newSpecies) => {
+    router.get(route('reports.diseases'), {
+        species: newSpecies,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['diseases', 'totalCases', 'speciesBreakdown', 'selectedSpecies'],
+        replace: true,
+    })
+})
+
+const chartCanvas = ref(null)
+let chartInstance = null
+
+function renderChart() {
+    if (chartInstance) chartInstance.destroy()
+    if (!chartCanvas.value || props.diseases.length === 0) return
+
+    // Top 7 common diseases
+    const top7 = props.diseases.slice(0, 7)
+    const labels = top7.map(d => `${d.diagnosis} (${d.species})`)
+    const counts = top7.map(d => d.count)
+
+    chartInstance = new Chart(chartCanvas.value, {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: counts,
+                backgroundColor: [
+                    '#6366f1', '#06b6d4', '#10b981', '#f59e0b',
+                    '#ec4899', '#8b5cf6', '#64748b'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { font: { size: 11, family: 'Inter, sans-serif' }, boxWidth: 12 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.label}: ${ctx.raw} ca`
+                    }
+                }
+            },
+            cutout: '65%',
+        }
+    })
+}
+
+onMounted(() => {
+    nextTick(() => renderChart())
+})
+
+watch(() => props.diseases, () => {
+    nextTick(() => renderChart())
+}, { deep: true })
+</script>
+
+<template>
+    <Head title="Báo cáo Bệnh phổ biến" />
+
+    <AuthenticatedLayout>
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900 tracking-tight">Thống kê Bệnh phổ biến theo Loài</h1>
+                <p class="text-xs text-gray-500 mt-0.5">Tổng hợp chẩn đoán từ hồ sơ bệnh án để phục vụ dự báo dịch bệnh và nhập kho thuốc</p>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="bg-white p-3.5 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2">
+                <span class="font-medium text-gray-600">Lọc theo loài vật nuôi:</span>
+                <select v-model="speciesFilter"
+                    class="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <option value="">-- Tất cả loài --</option>
+                    <option value="chó">Chó</option>
+                    <option value="mèo">Mèo</option>
+                    <option value="chim">Chim</option>
+                    <option value="khác">Loài khác</option>
+                </select>
+            </div>
+
+            <span class="text-xs font-mono text-gray-500">
+                Tổng cộng: <strong>{{ totalCases }}</strong> ca khám bệnh được ghi nhận
+            </span>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Biểu đồ Top bệnh phổ biến -->
+            <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+                <h3 class="text-sm font-bold text-gray-900 mb-1">Top các loại bệnh thường gặp nhất</h3>
+                <p class="text-[11px] text-gray-400 mb-4">Tỷ trọng các chẩn đoán lâm sàng</p>
+                <div class="h-64 relative">
+                    <canvas ref="chartCanvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Thống kê theo loài -->
+            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+                <h3 class="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2.5">
+                    Số ca khám theo loài
+                </h3>
+                <div class="space-y-3">
+                    <div v-for="sp in speciesBreakdown" :key="sp.species"
+                        class="p-3 bg-gray-50 rounded-lg border border-gray-100 flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                                <Icon name="pet" size="14" />
+                            </div>
+                            <span class="capitalize font-semibold text-gray-900">{{ sp.species }}</span>
+                        </div>
+                        <span class="font-mono font-bold text-gray-800">{{ sp.count }} ca</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden text-xs">
+            <div class="p-4 border-b border-gray-100">
+                <h3 class="font-bold text-gray-900">Bảng chi tiết chẩn đoán bệnh</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50/75 text-gray-500 font-mono uppercase text-[11px] border-b border-gray-200">
+                        <tr>
+                            <th class="px-5 py-3 font-semibold">STT</th>
+                            <th class="px-5 py-3 font-semibold">Loài vật nuôi</th>
+                            <th class="px-5 py-3 font-semibold">Chẩn đoán / Loại bệnh</th>
+                            <th class="px-5 py-3 font-semibold text-center">Số ca ghi nhận</th>
+                            <th class="px-5 py-3 font-semibold text-right">Tỷ lệ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr v-for="(item, idx) in diseases" :key="idx" class="hover:bg-gray-50/80">
+                            <td class="px-5 py-3 font-mono text-gray-400 text-center w-12">{{ idx + 1 }}</td>
+                            <td class="px-5 py-3 capitalize font-medium text-gray-800">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <Icon name="pet" size="12" class="text-indigo-600" />
+                                    {{ item.species }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-3 font-semibold text-gray-900">
+                                {{ item.diagnosis }}
+                            </td>
+                            <td class="px-5 py-3 text-center font-mono font-bold text-indigo-600">
+                                {{ item.count }}
+                            </td>
+                            <td class="px-5 py-3 text-right font-mono text-gray-600">
+                                {{ totalCases > 0 ? ((item.count / totalCases) * 100).toFixed(1) : 0 }}%
+                            </td>
+                        </tr>
+
+                        <!-- Empty state -->
+                        <tr v-if="diseases.length === 0">
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-400">
+                                <Icon name="stethoscope" size="32" class="mx-auto text-gray-300 mb-2" />
+                                <p class="text-xs font-medium text-gray-600">Chưa có dữ liệu chẩn đoán bệnh</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </AuthenticatedLayout>
+</template>
