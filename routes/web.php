@@ -21,6 +21,8 @@ Route::middleware('auth')->group(function () {
 // ===== ROUTE CHỈ ADMIN =====
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('medicines', \App\Http\Controllers\MedicineController::class);
+    Route::post('medicines/{medicine}/import', [\App\Http\Controllers\MedicineController::class, 'importStock'])
+        ->name('medicines.import');
     Route::resource('services', \App\Http\Controllers\ServiceController::class);
     Route::resource('users', \App\Http\Controllers\UserController::class);
 });
@@ -38,16 +40,22 @@ Route::middleware(['auth', 'role:receptionist|admin'])->group(function () {
         'appointments/{appointment}/confirm',
         [\App\Http\Controllers\AppointmentController::class, 'confirm']
     )->name('appointments.confirm');
+    Route::get('pets/{pet}/history', [\App\Http\Controllers\PetController::class, 'history'])
+        ->name('pets.history');
 });
 
-// ===== ROUTE CHO BÁC SĨ VÀ ADMIN =====
-Route::middleware(['auth', 'role:vet|admin'])->group(function () {
+// ===== ROUTE CHO BÁC SĨ, LỄ TÂN VÀ ADMIN =====
+Route::middleware(['auth', 'role:vet|receptionist|admin'])->group(function () {
     Route::resource('medical-records', \App\Http\Controllers\MedicalRecordController::class);
+    Route::get('medical-records/{medicalRecord}/pdf', [\App\Http\Controllers\MedicalRecordController::class, 'pdf'])
+        ->name('medical-records.pdf');
 });
 
 // ===== ROUTE HÓA ĐƠN (LỄ TÂN, KẾ TOÁN VÀ ADMIN) =====
 Route::middleware(['auth', 'role:receptionist|accountant|admin'])->group(function () {
     Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
+    Route::get('invoices/{invoice}/pdf', [\App\Http\Controllers\InvoiceController::class, 'pdf'])
+        ->name('invoices.pdf');
     Route::patch('invoices/{invoice}/pay', [\App\Http\Controllers\InvoiceController::class, 'pay'])
         ->name('invoices.pay');
 });
@@ -57,6 +65,12 @@ Route::middleware(['auth', 'role:accountant|admin'])->group(function () {
     Route::resource('expense-vouchers', \App\Http\Controllers\ExpenseVoucherController::class);
     Route::get('/reports/revenue', [\App\Http\Controllers\ReportController::class, 'revenue'])
         ->name('reports.revenue');
+    Route::get('/reports/revenue/export-excel', [\App\Http\Controllers\ReportController::class, 'exportRevenueExcel'])
+        ->name('reports.revenue.excel');
+    Route::get('/reports/diseases', [\App\Http\Controllers\ReportController::class, 'diseases'])
+        ->name('reports.diseases');
+    Route::get('/reports/loyal-customers', [\App\Http\Controllers\ReportController::class, 'loyalCustomers'])
+        ->name('reports.loyal-customers');
 });
 
 require __DIR__ . '/auth.php';
