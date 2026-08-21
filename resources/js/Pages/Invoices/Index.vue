@@ -13,14 +13,20 @@ const props = defineProps({
 const search = ref(props.filters.search ?? '')
 const status = ref(props.filters.status ?? '')
 
+let timeout = null
 watch([search, status], ([newSearch, newStatus]) => {
-    router.get(route('invoices.index'), {
-        search: newSearch,
-        status: newStatus,
-    }, {
-        preserveState: true,
-        replace: true,
-    })
+    clearTimeout(timeout)
+    timeout = setTimeout(() => {
+        router.get(route('invoices.index'), {
+            search: newSearch,
+            status: newStatus,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['invoices', 'filters'],
+            replace: true,
+        })
+    }, 300)
 }, { immediate: false })
 
 const statusConfig = {
@@ -46,7 +52,11 @@ const formatCurrency = (val) => {
 
 function payInvoice(id, invoiceNumber) {
     if (!confirm(`Xác nhận khách hàng đã thanh toán cho hóa đơn ${invoiceNumber}?`)) return
-    router.patch(route('invoices.pay', id))
+    router.patch(route('invoices.pay', id), {}, {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['invoices', 'flash'],
+    })
 }
 </script>
 
@@ -168,11 +178,13 @@ function payInvoice(id, invoiceNumber) {
                 <p>Trang {{ invoices.current_page }} / {{ invoices.last_page }}</p>
                 <div class="flex gap-1.5">
                     <Link v-if="invoices.prev_page_url" :href="invoices.prev_page_url"
+                        preserve-scroll preserve-state
                         class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-colors">
                         <Icon name="chevron-left" size="14" />
                         <span>Trước</span>
                     </Link>
                     <Link v-if="invoices.next_page_url" :href="invoices.next_page_url"
+                        preserve-scroll preserve-state
                         class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-colors">
                         <span>Sau</span>
                         <Icon name="chevron-right" size="14" />

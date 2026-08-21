@@ -99,12 +99,33 @@ const { isAdmin, isVet, isReceptionist, isAccountant, role } = useAuth()
                     <Icon name="document" size="17" />
                     <span>Phiếu chi</span>
                 </Link>
+            </div>
 
-                <Link v-if="isAccountant || isAdmin" :href="route('reports.revenue')"
+            <!-- Reports & Analytics -->
+            <div v-if="isAccountant || isAdmin" class="space-y-1">
+                <div class="px-3 text-[11px] font-semibold font-mono text-zinc-400 uppercase tracking-wider">
+                    Báo cáo & Thống kê
+                </div>
+
+                <Link :href="route('reports.revenue')"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/reports') }">
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/reports/revenue') }">
                     <Icon name="chart" size="17" />
                     <span>Báo cáo doanh thu</span>
+                </Link>
+
+                <Link :href="route('reports.diseases')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/reports/diseases') }">
+                    <Icon name="stethoscope" size="17" />
+                    <span>Bệnh phổ biến</span>
+                </Link>
+
+                <Link :href="route('reports.loyal-customers')"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': $page.url.startsWith('/reports/loyal-customers') }">
+                    <Icon name="users" size="17" />
+                    <span>Khách thân thiết</span>
                 </Link>
             </div>
 

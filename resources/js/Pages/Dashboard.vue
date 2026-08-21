@@ -10,6 +10,7 @@ const props = defineProps({
     todayAppointments: Array,
     pendingInvoices: Array,
     lowStockMedicines: Array,
+    expiringMedicines: Array,
 })
 
 const { isAdmin, isReceptionist, isVet, isAccountant, user } = useAuth()
@@ -44,6 +45,15 @@ const formatCurrency = (amount) => {
         currency: 'VND'
     }).format(amount ?? 0)
 }
+
+const formatDate = (dateStr) => {
+    if (!dateStr) return '—'
+    return new Date(dateStr).toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    })
+}
 </script>
 
 <template>
@@ -71,18 +81,45 @@ const formatCurrency = (amount) => {
                 <StatCard title="Thuốc sắp hết" :value="stats?.lowStockCount" icon="pill" color="red" />
             </div>
 
-            <!-- Cảnh báo thuốc sắp hết -->
-            <div v-if="lowStockMedicines?.length > 0" class="bg-rose-50/75 border border-rose-200 rounded-lg p-4 mb-6">
-                <div class="flex items-center gap-2 mb-2 text-rose-800 font-semibold text-xs uppercase font-mono">
-                    <Icon name="alert" size="15" />
-                    <span>Cảnh báo tồn kho: Thuốc sắp hết</span>
+            <!-- Cảnh báo tồn kho & Sắp hết hạn -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Cảnh báo thuốc sắp hết kho -->
+                <div v-if="lowStockMedicines?.length > 0" class="bg-rose-50/75 border border-rose-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2 text-rose-800 font-semibold text-xs uppercase font-mono">
+                            <Icon name="alert" size="15" />
+                            <span>Thuốc sắp hết kho ({{ lowStockMedicines.length }})</span>
+                        </div>
+                        <Link :href="route('medicines.index', { filter: 'low_stock' })" class="text-[11px] text-rose-600 hover:underline font-medium">
+                            Nhập kho →
+                        </Link>
+                    </div>
+                    <ul class="space-y-1.5 text-xs text-rose-700 divide-y divide-rose-100">
+                        <li v-for="med in lowStockMedicines" :key="med.id" class="pt-1.5 first:pt-0 flex items-center justify-between">
+                            <span>{{ med.name }}</span>
+                            <span class="font-mono font-medium">Còn <strong>{{ med.stock_quantity }} {{ med.unit }}</strong> (ngưỡng: {{ med.low_stock_threshold }})</span>
+                        </li>
+                    </ul>
                 </div>
-                <ul class="space-y-1.5 text-xs text-rose-700">
-                    <li v-for="med in lowStockMedicines" :key="med.id" class="flex items-center justify-between">
-                        <span>{{ med.name }}</span>
-                        <span class="font-mono font-medium">Còn <strong>{{ med.stock_quantity }} {{ med.unit }}</strong> (ngưỡng: {{ med.low_stock_threshold }})</span>
-                    </li>
-                </ul>
+
+                <!-- Cảnh báo thuốc sắp hết hạn -->
+                <div v-if="expiringMedicines?.length > 0" class="bg-amber-50/75 border border-amber-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2 text-amber-800 font-semibold text-xs uppercase font-mono">
+                            <Icon name="clock" size="15" />
+                            <span>Thuốc sắp hết hạn ≤ 30 ngày ({{ expiringMedicines.length }})</span>
+                        </div>
+                        <Link :href="route('medicines.index', { filter: 'expiring' })" class="text-[11px] text-amber-600 hover:underline font-medium">
+                            Xem tất cả →
+                        </Link>
+                    </div>
+                    <ul class="space-y-1.5 text-xs text-amber-700 divide-y divide-amber-100">
+                        <li v-for="med in expiringMedicines" :key="med.id" class="pt-1.5 first:pt-0 flex items-center justify-between">
+                            <span>{{ med.name }}</span>
+                            <span class="font-mono font-medium">HSD: <strong>{{ formatDate(med.expiry_date) }}</strong></span>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </template>
 

@@ -10,6 +10,7 @@ use App\Models\Medicine;
 use App\Models\Pet;
 use App\Models\Service;
 use App\Services\InventoryService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -70,11 +71,22 @@ class MedicalRecordController extends Controller
         $services = Service::orderBy('name')
             ->get(['id', 'name', 'price', 'description']);
 
+        // Lấy lịch sử khám trước đó của thú cưng nếu có
+        $initialPetId = $appointment?->pet_id ?? $request->pet_id;
+        $petHistory = [];
+        if ($initialPetId) {
+            $petHistory = MedicalRecord::where('pet_id', $initialPetId)
+                ->with(['doctor', 'prescriptions.medicine', 'services'])
+                ->latest()
+                ->get();
+        }
+
         return Inertia::render('MedicalRecords/Create', [
             'appointment' => $appointment,
             'pets'        => $pets,
             'medicines'   => $medicines,
             'services'    => $services,
+            'initialPetHistory' => $petHistory,
         ]);
     }
 
@@ -166,6 +178,26 @@ class MedicalRecordController extends Controller
         return Inertia::render('MedicalRecords/Show', [
             'record' => $medicalRecord,
         ]);
+    }
+
+    /**
+     * Xuất phiếu khám bệnh ra file PDF.
+     */
+    public function pdf(MedicalRecord $medicalRecord)
+    {
+        $medicalRecord->load([
+            'pet.customer',
+            'doctor',
+            'prescriptions.medicine',
+            'services',
+        ]);
+
+        $pdf = Pdf::loadView('pdf.medical_record', ['record' => $medicalRecord])
+            ->setPaper('a4', 'portrait');
+
+        $filename = 'Phieu-kham-KB' . str_pad($medicalRecord->id, 4, '0', STR_PAD_LEFT) . '.pdf';
+
+        return $pdf->stream($filename);
     }
 
     /**

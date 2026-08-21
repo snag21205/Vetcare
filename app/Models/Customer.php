@@ -22,4 +22,14 @@ class Customer extends Model
     {
         return $this->hasMany(Pet::class);
     }
+
+    public function medicalRecords(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(MedicalRecord::class, Pet::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }

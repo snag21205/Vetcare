@@ -4,25 +4,35 @@ import Icon from '@/Components/Icon.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, watch } from 'vue'
 
-function deleteCustomer(id, name) {
-    if (!confirm(`Bạn chắc chắn muốn xóa khách hàng "${name}"?`)) return
-    router.delete(route('customers.destroy', id))
-}
-
 const props = defineProps({
     customers: Object,
     filters: Object,
 })
 
+function deleteCustomer(id, name) {
+    if (!confirm(`Bạn chắc chắn muốn xóa khách hàng "${name}"?`)) return
+    router.delete(route('customers.destroy', id), {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['customers', 'flash'],
+    })
+}
+
 const search = ref(props.filters.search ?? '')
 
+let searchTimeout = null
 watch(search, (value) => {
-    router.get(route('customers.index'), {
-        search: value
-    }, {
-        preserveState: true,
-        replace: true,
-    })
+    clearTimeout(searchTimeout)
+    searchTimeout = setTimeout(() => {
+        router.get(route('customers.index'), {
+            search: value
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['customers', 'filters'],
+            replace: true,
+        })
+    }, 300)
 }, { immediate: false })
 </script>
 
@@ -113,11 +123,13 @@ watch(search, (value) => {
                 <p>Trang {{ customers.current_page }} / {{ customers.last_page }}</p>
                 <div class="flex gap-1.5">
                     <Link v-if="customers.prev_page_url" :href="customers.prev_page_url"
+                        preserve-scroll preserve-state
                         class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-colors">
                         <Icon name="chevron-left" size="14" />
                         <span>Trước</span>
                     </Link>
                     <Link v-if="customers.next_page_url" :href="customers.next_page_url"
+                        preserve-scroll preserve-state
                         class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-colors">
                         <span>Sau</span>
                         <Icon name="chevron-right" size="14" />

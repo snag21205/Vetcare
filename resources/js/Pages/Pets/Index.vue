@@ -5,7 +5,11 @@ import { Head, Link, router } from '@inertiajs/vue3'
 
 function deletePet(id, name) {
     if (!confirm(`Bạn chắc chắn muốn xóa thú cưng "${name}"?`)) return
-    router.delete(route('pets.destroy', id))
+    router.delete(route('pets.destroy', id), {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['pets', 'flash'],
+    })
 }
 
 defineProps({
@@ -103,11 +107,13 @@ const genderLabel = (g) => ({ male: 'Đực', female: 'Cái', unknown: 'Chưa r�
                 <p>Trang {{ pets.current_page }} / {{ pets.last_page }}</p>
                 <div class="flex gap-1.5">
                     <Link v-if="pets.prev_page_url" :href="pets.prev_page_url"
+                        preserve-scroll preserve-state
                         class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-colors">
                         <Icon name="chevron-left" size="14" />
                         <span>Trước</span>
                     </Link>
                     <Link v-if="pets.next_page_url" :href="pets.next_page_url"
+                        preserve-scroll preserve-state
                         class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-colors">
                         <span>Sau</span>
                         <Icon name="chevron-right" size="14" />

@@ -30,7 +30,11 @@ const formatCurrency = (val) => {
 
 function payInvoice() {
     if (!confirm(`Xác nhận thanh toán ${formatCurrency(props.invoice.total_amount)} cho hóa đơn ${props.invoice.invoice_number}?`)) return
-    router.patch(route('invoices.pay', props.invoice.id))
+    router.patch(route('invoices.pay', props.invoice.id), {}, {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['invoice', 'flash'],
+    })
 }
 
 function printInvoice() {
@@ -68,6 +72,11 @@ function printInvoice() {
                             {{ statusConfig[invoice.status]?.label ?? invoice.status }}
                         </span>
                         <div class="flex gap-2 justify-end">
+                            <a :href="route('invoices.pdf', invoice.id)" target="_blank"
+                                class="inline-flex items-center gap-1 text-xs border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-medium transition-colors">
+                                <Icon name="document" size="13" />
+                                <span>Xuất PDF</span>
+                            </a>
                             <button @click="printInvoice"
                                 class="inline-flex items-center gap-1 text-xs border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-colors">
                                 <Icon name="printer" size="13" />

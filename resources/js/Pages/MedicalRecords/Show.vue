@@ -86,7 +86,7 @@ function printRecord() {
             <!-- Card chính Phiếu khám -->
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6 text-xs">
                 <!-- Header -->
-                <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
                     <div>
                         <div class="flex items-center gap-2">
                             <h2 class="text-base font-bold text-gray-900">
@@ -100,11 +100,21 @@ function printRecord() {
                         <p class="text-[11px] text-gray-400 font-mono mt-0.5">Ngày lập phiếu: {{ formatDate(record.created_at) }}</p>
                     </div>
 
-                    <button @click="printRecord"
-                        class="inline-flex items-center gap-1 text-xs border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-colors">
-                        <Icon name="printer" size="13" />
-                        <span>In</span>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <!-- Nút Xuất PDF (Tuần 7) -->
+                        <a :href="route('medical-records.pdf', record.id)" target="_blank"
+                            class="inline-flex items-center gap-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg font-semibold transition-colors shadow-2xs">
+                            <Icon name="document" size="13" />
+                            <span>Xuất PDF</span>
+                        </a>
+
+                        <!-- Nút In trực tiếp trình duyệt -->
+                        <button @click="printRecord"
+                            class="inline-flex items-center gap-1 text-xs border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-colors">
+                            <Icon name="printer" size="13" />
+                            <span>In</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Thông tin bệnh nhân & Chủ nuôi -->

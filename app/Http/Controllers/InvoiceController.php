@@ -79,4 +79,26 @@ class InvoiceController extends Controller
 
         return back()->with('success', "Đã xác nhận thanh toán thành công cho hóa đơn {$invoice->invoice_number}!");
     }
+
+    /**
+     * Xuất hóa đơn ra file PDF.
+     */
+    public function pdf(Invoice $invoice)
+    {
+        $invoice->load([
+            'customer',
+            'medicalRecord.pet',
+            'medicalRecord.doctor',
+            'medicalRecord.prescriptions.medicine',
+            'medicalRecord.services',
+            'creator',
+        ]);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.invoice', ['invoice' => $invoice])
+            ->setPaper('a4', 'portrait');
+
+        $filename = "Hoa-don-{$invoice->invoice_number}.pdf";
+
+        return $pdf->stream($filename);
+    }
 }

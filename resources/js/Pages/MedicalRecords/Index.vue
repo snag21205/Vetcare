@@ -11,13 +11,19 @@ const props = defineProps({
 
 const search = ref(props.filters.search ?? '')
 
+let searchTimeout = null
 watch(search, (value) => {
-    router.get(route('medical-records.index'), {
-        search: value
-    }, {
-        preserveState: true,
-        replace: true,
-    })
+    clearTimeout(searchTimeout)
+    searchTimeout = setTimeout(() => {
+        router.get(route('medical-records.index'), {
+            search: value
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['records', 'filters'],
+            replace: true,
+        })
+    }, 300)
 }, { immediate: false })
 
 const statusConfig = {
@@ -151,11 +157,13 @@ const formatDate = (dateStr) => {
                 <p>Trang {{ records.current_page }} / {{ records.last_page }}</p>
                 <div class="flex gap-1.5">
                     <Link v-if="records.prev_page_url" :href="records.prev_page_url"
+                        preserve-scroll preserve-state
                         class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-colors">
                         <Icon name="chevron-left" size="14" />
                         <span>Trước</span>
                     </Link>
                     <Link v-if="records.next_page_url" :href="records.next_page_url"
+                        preserve-scroll preserve-state
                         class="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-colors">
                         <span>Sau</span>
                         <Icon name="chevron-right" size="14" />

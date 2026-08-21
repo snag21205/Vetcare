@@ -17,10 +17,14 @@ watch([date, status], ([newDate, newStatus]) => {
     router.get(route('appointments.index'), {
         date:   newDate,
         status: newStatus,
-    }, { preserveState: true, replace: true })
+    }, { 
+        preserveState: true, 
+        preserveScroll: true,
+        only: ['appointments', 'filters'],
+        replace: true,
+    })
 })
 
-// Refined status badges matching DESIGN.md
 const statusConfig = {
     pending:    { label: 'Chờ xác nhận', class: 'bg-amber-50 text-amber-700 border border-amber-200' },
     confirmed:  { label: 'Đã xác nhận',  class: 'bg-sky-50 text-sky-700 border border-sky-200' },
@@ -30,17 +34,30 @@ const statusConfig = {
     no_show:    { label: 'Không đến',    class: 'bg-orange-50 text-orange-700 border border-orange-200' },
 }
 
+// Xử lý AJAX cục bộ mượt mà không load lại trang & không nhảy vị trí cuộn
 function confirmAppointment(id) {
-    router.patch(route('appointments.confirm', id))
+    router.patch(route('appointments.confirm', id), {}, {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['appointments', 'flash'],
+    })
 }
 
 function checkIn(id) {
-    router.patch(route('appointments.check-in', id))
+    router.patch(route('appointments.check-in', id), {}, {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['appointments', 'flash'],
+    })
 }
 
 function cancelAppointment(id) {
     if (!confirm('Bạn có chắc chắn muốn hủy lịch hẹn này?')) return
-    router.delete(route('appointments.destroy', id))
+    router.delete(route('appointments.destroy', id), {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['appointments', 'flash'],
+    })
 }
 
 function changeDay(offset) {
