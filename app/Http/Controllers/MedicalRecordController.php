@@ -158,6 +158,12 @@ class MedicalRecordController extends Controller
             return $record;
         });
 
+        $record->load(['pet.customer', 'doctor', 'prescriptions.medicine']);
+        if ($record->pet?->customer?->email) {
+            \Illuminate\Support\Facades\Notification::route('mail', $record->pet->customer->email)
+                ->notify(new \App\Notifications\PrescriptionSummaryNotification($record));
+        }
+
         return redirect()->route('medical-records.show', $record->id)
             ->with('success', 'Đã lưu phiếu khám và tự động sinh hóa đơn thành công!');
     }

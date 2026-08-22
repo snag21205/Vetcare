@@ -73,6 +73,16 @@ class AppointmentController extends Controller
         ], $validated);
 
         $appointment = Appointment::create($data);
+        $appointment->load(['pet.customer', 'doctor']);
+
+        // Gửi thông báo cho Lễ tân & Bác sĩ phụ trách
+        $receptionists = User::role('receptionist')->get();
+        if ($receptionists->isNotEmpty()) {
+            \Illuminate\Support\Facades\Notification::send($receptionists, new \App\Notifications\NewAppointmentNotification($appointment));
+        }
+        if ($appointment->doctor && !$receptionists->contains('id', $appointment->doctor->id)) {
+            $appointment->doctor->notify(new \App\Notifications\NewAppointmentNotification($appointment));
+        }
 
         $targetDate = $appointment->scheduled_at 
             ? $appointment->scheduled_at->format('Y-m-d') 

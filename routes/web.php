@@ -73,4 +73,16 @@ Route::middleware(['auth', 'role:accountant|admin'])->group(function () {
         ->name('reports.loyal-customers');
 });
 
+// ===== ROUTE THÔNG BÁO (TẤT CẢ USER ĐÃ ĐĂNG NHẬP) =====
+Route::middleware('auth')->group(function () {
+    Route::get('notifications', [\App\Http\Controllers\NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::patch('notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])
+        ->name('notifications.read');
+    Route::post('notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
+        ->name('notifications.mark-all-read');
+    Route::delete('notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])
+        ->name('notifications.destroy');
+});
+
 require __DIR__ . '/auth.php';
