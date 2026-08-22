@@ -206,5 +206,17 @@ defineProps({
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" x2="9" y1="12" y2="12"/>
         </g>
+
+        <!-- Bell / Notification -->
+        <g v-else-if="name === 'bell'">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+        </g>
+
+        <!-- Check Check / Mark all read -->
+        <g v-else-if="name === 'check-check'">
+            <path d="M18 6 7 17l-5-5"/>
+            <path d="m22 10-7.5 7.5L13 16"/>
+        </g>
     </svg>
 </template>
