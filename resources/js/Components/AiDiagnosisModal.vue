@@ -171,12 +171,17 @@ function applyDiagnosis() {
                         </div>
                     </div>
 
-                    <!-- Thuốc gợi ý tham khảo -->
+                    <!-- Thuốc gợi ý tham khảo (Ràng buộc kho) -->
                     <div v-if="result.suggested_medicines?.length > 0" class="space-y-2">
-                        <h5 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
-                            <Icon name="pill" size="13" class="text-emerald-600" />
-                            <span>Phác đồ thuốc điều trị gợi ý:</span>
-                        </h5>
+                        <div class="flex items-center justify-between">
+                            <h5 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
+                                <Icon name="pill" size="13" class="text-emerald-600" />
+                                <span>Phác đồ thuốc điều trị (Có sẵn trong kho):</span>
+                            </h5>
+                            <span class="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-mono">
+                                Đã khớp kho phòng khám
+                            </span>
+                        </div>
                         <div class="bg-emerald-50/40 border border-emerald-200/70 rounded-lg p-3 space-y-2">
                             <div v-for="(m, idx) in result.suggested_medicines" :key="idx"
                                 class="flex items-start justify-between gap-2 border-b border-emerald-100/60 pb-1.5 last:border-b-0 last:pb-0">
@@ -192,16 +197,21 @@ function applyDiagnosis() {
                         </div>
                     </div>
 
-                    <!-- Dịch vụ kỹ thuật cần làm -->
+                    <!-- Dịch vụ kỹ thuật cần làm (Ràng buộc bảng giá) -->
                     <div v-if="result.suggested_services?.length > 0" class="space-y-2">
-                        <h5 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
-                            <Icon name="service" size="13" class="text-sky-600" />
-                            <span>Dịch vụ & Xét nghiệm cận lâm sàng đề xuất:</span>
-                        </h5>
+                        <div class="flex items-center justify-between">
+                            <h5 class="font-bold text-gray-800 text-xs flex items-center gap-1.5">
+                                <Icon name="service" size="13" class="text-sky-600" />
+                                <span>Dịch vụ & Xét nghiệm đề xuất (Theo bảng giá):</span>
+                            </h5>
+                            <span class="text-[10px] text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded font-mono">
+                                Đã khớp bảng giá
+                            </span>
+                        </div>
                         <div class="flex flex-wrap gap-1.5">
                             <span v-for="(s, idx) in result.suggested_services" :key="idx"
                                 class="bg-sky-50 text-sky-800 border border-sky-200 px-2.5 py-1 rounded-md text-[11px] font-medium">
-                                • {{ s }}
+                                • {{ typeof s === 'object' ? s.name : s }}
                             </span>
                         </div>
                     </div>
