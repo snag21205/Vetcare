@@ -26,10 +26,11 @@ class PrescriptionSummaryNotification extends Notification
         $pet = $this->record->pet?->name ?? 'Bé thú cưng';
         $doctor = $this->record->doctor?->name ?? 'Bác sĩ VetCare';
         $date = $this->record->created_at->format('d/m/Y');
+        $customerName = $notifiable->name ?? ($this->record->pet?->customer?->name ?? 'Quý khách');
 
         $mail = (new MailMessage)
             ->subject("[VetCare] Tóm tắt đơn thuốc & Kết quả khám bệnh cho {$pet}")
-            ->greeting("Kính gửi Quý khách {$notifiable->name},")
+            ->greeting("Kính gửi Quý khách {$customerName},")
             ->line("Cảm ơn Quý khách đã tin tưởng đưa bé **{$pet}** đến khám tại phòng khám thú y VetCare ngày {$date}.")
             ->line("---")
             ->line("**Thông tin kết quả khám bệnh:**")

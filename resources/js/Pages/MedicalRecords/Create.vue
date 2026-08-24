@@ -135,40 +135,50 @@ function handleApplyAi(aiData) {
     if (aiData.advice && !form.note) {
         form.note = aiData.advice
     }
-    // Tự động tìm và tick các dịch vụ trùng khớp nếu có
+    // Tự động tìm và tick các dịch vụ trùng khớp nếu có (hỗ trợ ID và Name)
     if (aiData.suggestedServices?.length > 0) {
-        aiData.suggestedServices.forEach(sName => {
+        aiData.suggestedServices.forEach(item => {
+            const svcId = typeof item === 'object' ? item.service_id : null
+            const svcName = typeof item === 'object' ? (item.name || '') : item
+
             const matched = props.services.find(s => 
-                s.name.toLowerCase().includes(sName.toLowerCase()) || 
-                sName.toLowerCase().includes(s.name.toLowerCase())
+                (svcId && s.id === svcId) ||
+                (svcName && s.name.toLowerCase().includes(svcName.toLowerCase())) ||
+                (svcName && svcName.toLowerCase().includes(s.name.toLowerCase()))
             )
             if (matched && !form.services.includes(matched.id)) {
                 form.services.push(matched.id)
             }
         })
     }
-    // Tự động thêm thuốc gợi ý nếu tìm thấy trong kho
+    // Tự động thêm thuốc gợi ý nếu tìm thấy trong kho (hỗ trợ ID và Name)
     if (aiData.suggestedMedicines?.length > 0) {
         aiData.suggestedMedicines.forEach(m => {
+            const medId = m.medicine_id ?? null
+            const medName = m.name ?? ''
+
             const matchedMed = props.medicines.find(med => 
-                med.name.toLowerCase().includes(m.name.toLowerCase()) || 
-                m.name.toLowerCase().includes(med.name.toLowerCase())
+                (medId && med.id === medId) ||
+                (medName && med.name.toLowerCase().includes(medName.toLowerCase())) || 
+                (medName && medName.toLowerCase().includes(med.name.toLowerCase()))
             )
             if (matchedMed) {
                 const exists = form.prescriptions.some(p => p.medicine_id === matchedMed.id)
                 if (!exists) {
+                    const days = m.days ? Number(m.days) : 5
+                    const qty = m.quantity ? Number(m.quantity) : days
                     if (form.prescriptions.length === 1 && !form.prescriptions[0].medicine_id) {
                         form.prescriptions[0].medicine_id = matchedMed.id
-                        form.prescriptions[0].dosage = m.dosage || ''
-                        form.prescriptions[0].days = m.days || 5
-                        form.prescriptions[0].quantity = m.days ? Number(m.days) : 1
+                        form.prescriptions[0].dosage = m.dosage || '1 viên/lần, ngày 2 lần'
+                        form.prescriptions[0].days = days
+                        form.prescriptions[0].quantity = qty
                         form.prescriptions[0].note = m.purpose || ''
                     } else {
                         form.prescriptions.push({
                             medicine_id: matchedMed.id,
-                            dosage: m.dosage || '',
-                            days: m.days || 5,
-                            quantity: m.days ? Number(m.days) : 1,
+                            dosage: m.dosage || '1 viên/lần, ngày 2 lần',
+                            days: days,
+                            quantity: qty,
                             note: m.purpose || '',
                         })
                     }

@@ -23,6 +23,9 @@ class MedicineController extends Controller
         $filter = $request->filter; // 'all', 'low_stock', 'expiring'
 
         $medicines = Medicine::query()
+            ->with(['batches' => function ($query) {
+                $query->where('remaining_quantity', '>', 0)->orderBy('expiry_date', 'asc');
+            }])
             ->when($search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhere('unit', 'like', "%{$search}%");
@@ -68,10 +71,21 @@ class MedicineController extends Controller
      */
     public function store(StoreMedicineRequest $request)
     {
-        Medicine::create($request->validated());
+        $medicine = Medicine::create($request->validated());
+
+        // Nếu khai báo có tồn kho ban đầu, tự động tạo lô thuốc đầu tiên
+        if ($medicine->stock_quantity > 0) {
+            $medicine->batches()->create([
+                'batch_number'       => 'LO-' . date('Ymd') . '-001',
+                'quantity'           => $medicine->stock_quantity,
+                'remaining_quantity' => $medicine->stock_quantity,
+                'import_price'       => $medicine->import_price,
+                'expiry_date'        => $medicine->expiry_date,
+            ]);
+        }
 
         return redirect()->route('medicines.index')
-            ->with('success', 'Đã thêm thuốc mới vào kho thành công!');
+            ->with('success', "Đã thêm thuốc {$medicine->name} vào danh mục thành công!");
     }
 
     /**
@@ -98,6 +112,7 @@ class MedicineController extends Controller
     public function update(UpdateMedicineRequest $request, Medicine $medicine)
     {
         $medicine->update($request->validated());
+        $medicine->recalculateStockAndEarliestExpiry();
 
         return redirect()->route('medicines.index')
             ->with('success', "Đã cập nhật thông tin thuốc {$medicine->name} thành công!");
@@ -115,25 +130,34 @@ class MedicineController extends Controller
     }
 
     /**
-     * Nhập thêm hàng vào kho thuốc và tùy chọn tự động sinh phiếu chi.
+     * Nhập thêm hàng vào kho thuốc theo từng lô riêng biệt và tùy chọn tự động sinh phiếu chi.
      */
     public function importStock(ImportStockRequest $request, Medicine $medicine)
     {
         $validated = $request->validated();
 
         DB::transaction(function () use ($validated, $medicine, $request) {
-            // 1. Tăng tồn kho và cập nhật giá nhập mới
-            $medicine->increment('stock_quantity', (int)$validated['quantity']);
+            // 1. Tạo lô nhập thuốc mới (MedicineBatch) với HSD và số lượng riêng biệt
+            $batchNumber = !empty($validated['batch_number']) 
+                ? $validated['batch_number'] 
+                : 'LO-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
 
-            $updateData = [
-                'import_price' => $validated['import_price'],
-            ];
-            if (!empty($validated['expiry_date'])) {
-                $updateData['expiry_date'] = $validated['expiry_date'];
-            }
-            $medicine->update($updateData);
+            $medicine->batches()->create([
+                'batch_number'       => $batchNumber,
+                'quantity'           => (int)$validated['quantity'],
+                'remaining_quantity' => (int)$validated['quantity'],
+                'import_price'       => $validated['import_price'],
+                'expiry_date'        => $validated['expiry_date'] ?? null,
+            ]);
 
-            // 2. Nếu chọn tạo phiếu chi
+            // Cập nhật giá nhập mới nhất cho thuốc
+            $medicine->import_price = $validated['import_price'];
+            $medicine->save();
+
+            // 2. Tự động tính toán lại tổng tồn kho và hạn sử dụng gần nhất (FEFO)
+            $medicine->recalculateStockAndEarliestExpiry();
+
+            // 3. Nếu chọn tạo phiếu chi
             if (!empty($validated['create_voucher'])) {
                 $totalAmount = (int)$validated['quantity'] * (float)$validated['import_price'];
                 $note = !empty($validated['note']) ? " ({$validated['note']})" : '';
@@ -141,13 +165,13 @@ class MedicineController extends Controller
                 ExpenseVoucher::create([
                     'category'     => 'medicine_import',
                     'amount'       => $totalAmount,
-                    'description'  => "Nhập kho {$validated['quantity']} {$medicine->unit} thuốc {$medicine->name}{$note}",
+                    'description'  => "Nhập kho {$validated['quantity']} {$medicine->unit} thuốc {$medicine->name} [Lô: {$batchNumber}]{$note}",
                     'voucher_date' => today(),
                     'created_by'   => $request->user()->id,
                 ]);
             }
         });
 
-        return back()->with('success', "Đã nhập thêm {$validated['quantity']} {$medicine->unit} thuốc {$medicine->name} vào kho thành công!");
+        return back()->with('success', "Đã nhập thêm {$validated['quantity']} {$medicine->unit} thuốc {$medicine->name} vào lô mới thành công!");
     }
 }

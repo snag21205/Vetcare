@@ -16,6 +16,7 @@ class ImportStockRequest extends FormRequest
         return [
             'quantity'       => ['required', 'integer', 'min:1'],
             'import_price'   => ['required', 'numeric', 'min:0'],
+            'batch_number'   => ['nullable', 'string', 'max:50'],
             'create_voucher' => ['boolean'],
             'expiry_date'    => ['nullable', 'date'],
             'note'           => ['nullable', 'string'],

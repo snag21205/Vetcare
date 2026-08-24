@@ -30,10 +30,35 @@ class Medicine extends Model
         return $this->hasMany(Prescription::class);
     }
 
+    public function batches(): HasMany
+    {
+        return $this->hasMany(MedicineBatch::class);
+    }
+
+    /**
+     * Tự động tính lại tổng tồn kho và hạn sử dụng gần nhất từ các lô còn thuốc.
+     */
+    public function recalculateStockAndEarliestExpiry(): self
+    {
+        $totalStock = (int)$this->batches()->sum('remaining_quantity');
+        
+        $earliestExpiry = $this->batches()
+            ->where('remaining_quantity', '>', 0)
+            ->whereNotNull('expiry_date')
+            ->min('expiry_date');
+
+        $this->stock_quantity = $totalStock;
+        $this->expiry_date = $earliestExpiry;
+        $this->save();
+
+        return $this;
+    }
+
     public function isLowStock(): bool
     {
         return $this->stock_quantity <= $this->low_stock_threshold;
     }
+
     public function isExpiringSoon(): bool
     {
         if (!$this->expiry_date) return false;

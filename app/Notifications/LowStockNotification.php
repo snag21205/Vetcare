@@ -23,9 +23,11 @@ class LowStockNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        $adminName = $notifiable->name ?? 'Quản trị viên';
+
         return (new MailMessage)
             ->subject("[VetCare Cảnh Báo] Thuốc sắp hết kho: {$this->medicine->name}")
-            ->greeting("Xin chào Quản trị viên {$notifiable->name},")
+            ->greeting("Xin chào {$adminName},")
             ->line("Cảnh báo tồn kho thuốc xuống dưới ngưỡng an toàn:")
             ->line("- **Tên thuốc:** {$this->medicine->name}")
             ->line("- **Tồn kho hiện tại:** {$this->medicine->stock_quantity} {$this->medicine->unit}")
