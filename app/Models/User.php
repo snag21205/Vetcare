@@ -28,13 +28,14 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
-        'is_actice',
+        'is_active',
     ];
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 }

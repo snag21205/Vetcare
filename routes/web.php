@@ -25,6 +25,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('medicines.import');
     Route::resource('services', \App\Http\Controllers\ServiceController::class);
     Route::resource('users', \App\Http\Controllers\UserController::class);
+    Route::patch('users/{user}/toggle-status', [\App\Http\Controllers\UserController::class, 'toggleStatus'])
+        ->name('users.toggle-status');
 });
 
 // ===== ROUTE CHO LỄ TÂN VÀ ADMIN =====
@@ -49,6 +51,8 @@ Route::middleware(['auth', 'role:vet|receptionist|admin'])->group(function () {
     Route::resource('medical-records', \App\Http\Controllers\MedicalRecordController::class);
     Route::get('medical-records/{medicalRecord}/pdf', [\App\Http\Controllers\MedicalRecordController::class, 'pdf'])
         ->name('medical-records.pdf');
+    Route::post('ai/diagnose', [\App\Http\Controllers\AiDiagnosisController::class, 'diagnose'])
+        ->name('ai.diagnose');
 });
 
 // ===== ROUTE HÓA ĐƠN (LỄ TÂN, KẾ TOÁN VÀ ADMIN) =====

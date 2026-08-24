@@ -1,8 +1,11 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Icon from '@/Components/Icon.vue'
+import AiDiagnosisModal from '@/Components/AiDiagnosisModal.vue'
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref, watch } from 'vue'
+
+const showAiModal = ref(false)
 
 const props = defineProps({
     appointment: Object,
@@ -125,8 +128,54 @@ function addPrescription() {
     })
 }
 
-function removePrescription(index) {
-    form.prescriptions.splice(index, 1)
+function handleApplyAi(aiData) {
+    if (aiData.diagnosis) {
+        form.diagnosis = aiData.diagnosis
+    }
+    if (aiData.advice && !form.note) {
+        form.note = aiData.advice
+    }
+    // Tự động tìm và tick các dịch vụ trùng khớp nếu có
+    if (aiData.suggestedServices?.length > 0) {
+        aiData.suggestedServices.forEach(sName => {
+            const matched = props.services.find(s => 
+                s.name.toLowerCase().includes(sName.toLowerCase()) || 
+                sName.toLowerCase().includes(s.name.toLowerCase())
+            )
+            if (matched && !form.services.includes(matched.id)) {
+                form.services.push(matched.id)
+            }
+        })
+    }
+    // Tự động thêm thuốc gợi ý nếu tìm thấy trong kho
+    if (aiData.suggestedMedicines?.length > 0) {
+        aiData.suggestedMedicines.forEach(m => {
+            const matchedMed = props.medicines.find(med => 
+                med.name.toLowerCase().includes(m.name.toLowerCase()) || 
+                m.name.toLowerCase().includes(med.name.toLowerCase())
+            )
+            if (matchedMed) {
+                const exists = form.prescriptions.some(p => p.medicine_id === matchedMed.id)
+                if (!exists) {
+                    if (form.prescriptions.length === 1 && !form.prescriptions[0].medicine_id) {
+                        form.prescriptions[0].medicine_id = matchedMed.id
+                        form.prescriptions[0].dosage = m.dosage || ''
+                        form.prescriptions[0].days = m.days || 5
+                        form.prescriptions[0].quantity = m.days ? Number(m.days) : 1
+                        form.prescriptions[0].note = m.purpose || ''
+                    } else {
+                        form.prescriptions.push({
+                            medicine_id: matchedMed.id,
+                            dosage: m.dosage || '',
+                            days: m.days || 5,
+                            quantity: m.days ? Number(m.days) : 1,
+                            note: m.purpose || '',
+                        })
+                    }
+                }
+            }
+        })
+    }
 }
 
 function submit() {
@@ -209,11 +258,20 @@ function submit() {
 
                     <!-- Card 2: Khám lâm sàng & Chẩn đoán -->
                     <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-4 text-xs">
-                        <div class="border-b border-gray-100 pb-3 flex items-center gap-2">
-                            <div class="w-7 h-7 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
-                                <Icon name="document" size="15" />
+                        <div class="border-b border-gray-100 pb-3 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                                    <Icon name="document" size="15" />
+                                </div>
+                                <h2 class="text-sm font-bold text-gray-900">Khám lâm sàng & Chẩn đoán</h2>
                             </div>
-                            <h2 class="text-sm font-bold text-gray-900">Khám lâm sàng & Chẩn đoán</h2>
+
+                            <!-- Nút AI Gợi ý chẩn đoán -->
+                            <button type="button" @click="showAiModal = true"
+                                class="inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-50 to-violet-50 hover:from-indigo-100 hover:to-violet-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg font-semibold text-xs transition-all shadow-2xs">
+                                <Icon name="sparkles" size="14" class="text-indigo-600" />
+                                <span>AI Gợi ý chẩn đoán</span>
+                            </button>
                         </div>
 
                         <div>
@@ -486,5 +544,16 @@ function submit() {
 
             </div>
         </div>
+
+        <!-- Modal AI Gợi ý chẩn đoán -->
+        <AiDiagnosisModal
+            :show="showAiModal"
+            :species="selectedPet?.species ?? 'chó'"
+            :symptoms="form.symptoms"
+            :weight="form.weight_at_visit"
+            :temperature="form.temperature_at_visit"
+            @close="showAiModal = false"
+            @apply="handleApplyAi"
+        />
     </AuthenticatedLayout>
 </template>
