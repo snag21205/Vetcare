@@ -58,10 +58,10 @@ function renderCharts() {
                     {
                         label: 'Doanh thu (VNĐ)',
                         data: revenues,
-                        backgroundColor: 'rgba(99, 102, 241, 0.85)',
-                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(2, 132, 199, 0.85)',
+                        borderColor: '#0284c7',
                         borderWidth: 1,
-                        borderRadius: 4,
+                        borderRadius: 6,
                     },
                     {
                         label: 'Chi phí (VNĐ)',
@@ -69,7 +69,7 @@ function renderCharts() {
                         backgroundColor: 'rgba(244, 63, 94, 0.75)',
                         borderColor: '#e11d48',
                         borderWidth: 1,
-                        borderRadius: 4,
+                        borderRadius: 6,
                     }
                 ]
             },
@@ -79,7 +79,7 @@ function renderCharts() {
                 plugins: {
                     legend: {
                         position: 'top',
-                        labels: { font: { size: 11, family: 'Inter, sans-serif' }, boxWidth: 12 }
+                        labels: { font: { size: 11, family: 'Plus Jakarta Sans, sans-serif' }, boxWidth: 12 }
                     },
                     tooltip: {
                         callbacks: {
@@ -90,7 +90,7 @@ function renderCharts() {
                 scales: {
                     x: { grid: { display: false }, ticks: { font: { size: 10 } } },
                     y: {
-                        grid: { color: '#f3f4f6' },
+                        grid: { color: '#f1f5f9' },
                         ticks: {
                             font: { size: 10 },
                             callback: (v) => v >= 1000000 ? `${v/1000000}M` : `${v/1000}k`
@@ -101,21 +101,24 @@ function renderCharts() {
         })
     }
 
-    // 2. Breakdown Doughnut Chart
+    // 2. Breakdown Chart (Doughnut)
     if (breakdownChartCanvas.value) {
+        const total = (props.summary.revenue_service || 0) + (props.summary.revenue_medicine || 0)
         breakdownChartInstance = new Chart(breakdownChartCanvas.value, {
             type: 'doughnut',
             data: {
-                labels: ['Tiền khám', 'Dịch vụ kỹ thuật', 'Đơn thuốc'],
+                labels: ['Dịch vụ kỹ thuật', 'Thuốc & Vật tư'],
                 datasets: [{
                     data: [
-                        props.summary.total_exam,
-                        props.summary.total_service,
-                        props.summary.total_medicine
+                        props.summary.revenue_service || 0,
+                        props.summary.revenue_medicine || 0
                     ],
-                    backgroundColor: ['#6366f1', '#06b6d4', '#10b981'],
+                    backgroundColor: [
+                        '#0284c7', // Sky 600
+                        '#10b981', // Emerald 500
+                    ],
                     borderWidth: 2,
-                    borderColor: '#ffffff',
+                    borderColor: '#ffffff'
                 }]
             },
             options: {
@@ -124,15 +127,19 @@ function renderCharts() {
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: { font: { size: 11 }, boxWidth: 12 }
+                        labels: { font: { size: 11, family: 'Plus Jakarta Sans, sans-serif' }, boxWidth: 12 }
                     },
                     tooltip: {
                         callbacks: {
-                            label: (ctx) => `${ctx.label}: ${formatCurrency(ctx.raw)}`
+                            label: (ctx) => {
+                                const val = ctx.raw
+                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0
+                                return `${ctx.label}: ${formatCurrency(val)} (${pct}%)`
+                            }
                         }
                     }
                 },
-                cutout: '70%',
+                cutout: '70%'
             }
         })
     }
@@ -151,141 +158,143 @@ watch(() => props.dailyData, () => {
     <Head title="Báo cáo Doanh thu" />
 
     <AuthenticatedLayout>
-        <!-- Page Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-                <h1 class="text-xl font-bold text-gray-900 tracking-tight">Báo cáo Doanh thu & Chi phí</h1>
-                <p class="text-xs text-gray-500 mt-0.5">Phân tích hiệu quả tài chính, cơ cấu nguồn thu và đóng góp của bác sĩ</p>
-            </div>
-            
-            <div class="flex items-center gap-2">
-                <!-- Nút xuất Excel -->
-                <a :href="route('reports.revenue.excel', { month: selectedMonth })"
-                    class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition-colors">
-                    <Icon name="document" size="14" />
-                    <span>Xuất Excel (.csv)</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Filter bar -->
-        <div class="bg-white p-3.5 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-wrap items-center gap-3 text-xs">
-            <div class="flex items-center gap-2">
-                <span class="font-medium text-gray-600">Tháng:</span>
-                <input v-model="selectedMonth" type="month"
-                    class="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono" />
+        <div class="space-y-4">
+            <!-- Page Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900 tracking-tight">Báo cáo Doanh thu & Chi phí</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Phân tích hiệu quả tài chính, cơ cấu nguồn thu và đóng góp của bác sĩ</p>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <!-- Nút xuất Excel -->
+                    <a :href="route('reports.revenue.excel', { month: selectedMonth })"
+                        class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xs transition-colors shrink-0">
+                        <Icon name="document" size="14" />
+                        <span>Xuất Excel (.csv)</span>
+                    </a>
+                </div>
             </div>
 
-            <div class="flex items-center gap-2">
-                <span class="font-medium text-gray-600">Bác sĩ:</span>
-                <select v-model="selectedDoctor"
-                    class="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                    <option value="">-- Tất cả bác sĩ --</option>
-                    <option v-for="doc in doctors" :key="doc.id" :value="doc.id">
-                        BS. {{ doc.name }}
-                    </option>
-                </select>
+            <!-- Filter bar -->
+            <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs flex flex-wrap items-center gap-3 text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="font-semibold text-slate-600">Tháng:</span>
+                    <input v-model="selectedMonth" type="month"
+                        class="border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white font-semibold" />
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span class="font-semibold text-slate-600">Bác sĩ:</span>
+                    <select v-model="selectedDoctor"
+                        class="border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white font-medium">
+                        <option value="">-- Tất cả bác sĩ --</option>
+                        <option v-for="doc in doctors" :key="doc.id" :value="doc.id">
+                            BS. {{ doc.name }}
+                        </option>
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <!-- Stat Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <StatCard title="Tổng Doanh thu" :value="summary.total_revenue" icon="chart" color="indigo" format="currency" />
-            <StatCard title="Tổng Chi phí" :value="summary.total_expense" icon="document" color="red" format="currency" />
-            <StatCard title="Lợi nhuận Thuần" :value="summary.net_profit" icon="check" :color="summary.net_profit >= 0 ? 'green' : 'red'" format="currency" />
-            <StatCard title="Hóa đơn thanh toán" :value="summary.invoice_count" icon="invoice" color="blue" />
-        </div>
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <StatCard title="Tổng Doanh thu" :value="summary.total_revenue" icon="chart" color="sky" format="currency" />
+                <StatCard title="Tổng Chi phí" :value="summary.total_expense" icon="document" color="red" format="currency" />
+                <StatCard title="Lợi nhuận Thuần" :value="summary.net_profit" icon="check" :color="summary.net_profit >= 0 ? 'green' : 'red'" format="currency" />
+                <StatCard title="Hóa đơn thanh toán" :value="summary.invoice_count" icon="invoice" color="blue" />
+            </div>
 
-        <!-- Charts Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <!-- Daily Chart (2 cols) -->
-            <div class="lg:col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-                <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-900">Diễn biến Doanh thu & Chi phí theo ngày</h3>
-                        <p class="text-[11px] text-gray-400 font-mono">Tháng {{ selectedMonth }}</p>
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <!-- Daily Chart (2 cols) -->
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">Diễn biến Doanh thu & Chi phí theo ngày</h3>
+                            <p class="text-[11px] text-slate-400">Tháng {{ selectedMonth }}</p>
+                        </div>
+                    </div>
+                    <div class="h-64 relative">
+                        <canvas ref="dailyChartCanvas"></canvas>
                     </div>
                 </div>
-                <div class="h-64 relative">
-                    <canvas ref="dailyChartCanvas"></canvas>
-                </div>
-            </div>
 
-            <!-- Breakdown Chart (1 col) -->
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-                <div class="border-b border-gray-100 pb-3 mb-4">
-                    <h3 class="text-sm font-bold text-gray-900">Cơ cấu Doanh thu</h3>
-                    <p class="text-[11px] text-gray-400">Tỷ trọng tiền khám, thuốc và dịch vụ</p>
-                </div>
-                <div class="h-64 relative">
-                    <canvas ref="breakdownChartCanvas"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tables Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Bác sĩ đóng góp -->
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-                <h3 class="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2.5">
-                    Doanh thu theo Bác sĩ phụ trách
-                </h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-left">
-                        <thead class="bg-gray-50/75 text-gray-500 font-mono uppercase text-[11px]">
-                            <tr>
-                                <th class="px-4 py-2.5 font-semibold">Bác sĩ</th>
-                                <th class="px-4 py-2.5 font-semibold text-center">Số ca khám</th>
-                                <th class="px-4 py-2.5 font-semibold text-right">Doanh thu mang lại</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            <tr v-for="doc in doctorStats" :key="doc.doctor_id" class="hover:bg-gray-50/80">
-                                <td class="px-4 py-3 font-medium text-gray-900">BS. {{ doc.doctor_name }}</td>
-                                <td class="px-4 py-3 text-center font-mono">{{ doc.count }}</td>
-                                <td class="px-4 py-3 text-right font-mono font-bold text-indigo-600">
-                                    {{ formatCurrency(doc.revenue) }}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Cơ cấu chi phí -->
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-                <h3 class="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2.5">
-                    Cơ cấu Chi phí tháng {{ selectedMonth }}
-                </h3>
-                <div class="space-y-3 text-xs">
-                    <div class="flex items-center justify-between p-3 rounded-lg bg-emerald-50/60 border border-emerald-100">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-7 h-7 rounded bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                                <Icon name="pill" size="14" />
-                            </div>
-                            <span class="font-medium text-emerald-900">Chi nhập kho thuốc & vật tư</span>
-                        </div>
-                        <span class="font-mono font-bold text-emerald-800">{{ formatCurrency(summary.expense_import) }}</span>
+                <!-- Breakdown Chart (1 col) -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+                    <div class="border-b border-slate-100 pb-3 mb-4">
+                        <h3 class="text-sm font-bold text-slate-900">Cơ cấu Doanh thu</h3>
+                        <p class="text-[11px] text-slate-400">Tỷ trọng tiền khám, thuốc và dịch vụ</p>
                     </div>
-
-                    <div class="flex items-center justify-between p-3 rounded-lg bg-sky-50/60 border border-sky-100">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-7 h-7 rounded bg-sky-100 text-sky-700 flex items-center justify-center font-bold">
-                                <Icon name="chart" size="14" />
-                            </div>
-                            <span class="font-medium text-sky-900">Chi phí vận hành (Điện, nước, mặt bằng)</span>
-                        </div>
-                        <span class="font-mono font-bold text-sky-800">{{ formatCurrency(summary.expense_ops) }}</span>
+                    <div class="h-64 relative">
+                        <canvas ref="breakdownChartCanvas"></canvas>
                     </div>
+                </div>
+            </div>
 
-                    <div class="flex items-center justify-between p-3 rounded-lg bg-zinc-50 border border-zinc-200">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-7 h-7 rounded bg-zinc-200 text-zinc-700 flex items-center justify-center font-bold">
-                                <Icon name="document" size="14" />
+            <!-- Tables Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Bác sĩ đóng góp -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+                    <h3 class="text-sm font-bold text-slate-900 mb-3 border-b border-slate-100 pb-2.5">
+                        Doanh thu theo Bác sĩ phụ trách
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+                                <tr>
+                                    <th class="px-4 py-2.5 font-semibold">Bác sĩ</th>
+                                    <th class="px-4 py-2.5 font-semibold text-center">Số ca khám</th>
+                                    <th class="px-4 py-2.5 font-semibold text-right">Doanh thu mang lại</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr v-for="doc in doctorStats" :key="doc.doctor_id" class="hover:bg-slate-50/80">
+                                    <td class="px-4 py-3 font-semibold text-slate-900">BS. {{ doc.doctor_name }}</td>
+                                    <td class="px-4 py-3 text-center tabular-nums font-bold">{{ doc.count }}</td>
+                                    <td class="px-4 py-3 text-right tabular-nums font-bold text-sky-700">
+                                        {{ formatCurrency(doc.revenue) }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Cơ cấu chi phí -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+                    <h3 class="text-sm font-bold text-slate-900 mb-3 border-b border-slate-100 pb-2.5">
+                        Cơ cấu Chi phí tháng {{ selectedMonth }}
+                    </h3>
+                    <div class="space-y-3 text-xs">
+                        <div class="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-100">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                                    <Icon name="pill" size="15" />
+                                </div>
+                                <span class="font-semibold text-emerald-900">Chi nhập kho thuốc & vật tư</span>
                             </div>
-                            <span class="font-medium text-zinc-900">Chi phí khác</span>
+                            <span class="tabular-nums font-bold text-emerald-800">{{ formatCurrency(summary.expense_import) }}</span>
                         </div>
-                        <span class="font-mono font-bold text-zinc-800">{{ formatCurrency(summary.expense_other) }}</span>
+
+                        <div class="flex items-center justify-between p-3.5 rounded-xl bg-sky-50/60 border border-sky-100">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold">
+                                    <Icon name="chart" size="15" />
+                                </div>
+                                <span class="font-semibold text-sky-900">Chi phí vận hành (Điện, nước, mặt bằng)</span>
+                            </div>
+                            <span class="tabular-nums font-bold text-sky-800">{{ formatCurrency(summary.expense_ops) }}</span>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-bold">
+                                    <Icon name="document" size="15" />
+                                </div>
+                                <span class="font-semibold text-slate-900">Chi phí khác</span>
+                            </div>
+                            <span class="tabular-nums font-bold text-slate-800">{{ formatCurrency(summary.expense_other) }}</span>
+                        </div>
                     </div>
                 </div>
             </div>

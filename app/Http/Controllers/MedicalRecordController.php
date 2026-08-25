@@ -160,8 +160,12 @@ class MedicalRecordController extends Controller
 
         $record->load(['pet.customer', 'doctor', 'prescriptions.medicine']);
         if ($record->pet?->customer?->email) {
-            \Illuminate\Support\Facades\Notification::route('mail', $record->pet->customer->email)
-                ->notify(new \App\Notifications\PrescriptionSummaryNotification($record));
+            try {
+                \Illuminate\Support\Facades\Notification::route('mail', $record->pet->customer->email)
+                    ->notify(new \App\Notifications\PrescriptionSummaryNotification($record));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Không gửi được email đơn thuốc: ' . $e->getMessage());
+            }
         }
 
         return redirect()->route('medical-records.show', $record->id)

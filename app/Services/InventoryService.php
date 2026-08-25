@@ -52,9 +52,13 @@ class InventoryService
 
         // Gửi thông báo cho Admin nếu tồn kho xuống dưới hoặc bằng ngưỡng
         if ($medicine->isLowStock()) {
-            $admins = \App\Models\User::role('admin')->get();
-            if ($admins->isNotEmpty()) {
-                \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\LowStockNotification($medicine));
+            try {
+                $admins = \App\Models\User::role('admin')->get();
+                if ($admins->isNotEmpty()) {
+                    \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\LowStockNotification($medicine));
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Không gửi được thông báo tồn kho thấp: ' . $e->getMessage());
             }
         }
 

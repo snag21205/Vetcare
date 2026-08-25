@@ -44,6 +44,7 @@ const form = useForm({
 })
 
 // Quản lý Timeline lịch sử khám bệnh (Tuần 7)
+const selectedPet = computed(() => props.pets.find(p => p.id === Number(form.pet_id)))
 const petHistory = ref(props.initialPetHistory ?? [])
 const isLoadingHistory = ref(false)
 const showHistory = ref(true)
@@ -55,9 +56,8 @@ watch(() => form.pet_id, async (newPetId) => {
     }
 
     // Tự động điền cân nặng nếu vật nuôi đã có
-    const selectedPet = props.pets.find(p => p.id === Number(newPetId))
-    if (selectedPet && selectedPet.weight && !form.weight_at_visit) {
-        form.weight_at_visit = selectedPet.weight
+    if (selectedPet.value && selectedPet.value.weight && !form.weight_at_visit) {
+        form.weight_at_visit = selectedPet.value.weight
     }
 
     try {

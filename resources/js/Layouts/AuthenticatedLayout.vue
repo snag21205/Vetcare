@@ -1,32 +1,38 @@
 <script setup>
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { Link, usePage, router } from '@inertiajs/vue3'
 import Sidebar from '@/Components/Sidebar.vue'
 import Icon from '@/Components/Icon.vue'
-import { usePage, Link, router } from '@inertiajs/vue3'
-import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const page = usePage()
-const flash = computed(() => page.props.flash ?? {})
 const user = computed(() => page.props.auth?.user ?? {})
-const role = computed(() => page.props.auth?.role ?? '')
-const unreadCount = computed(() => page.props.unreadNotificationsCount ?? 0)
-const recentNotifications = computed(() => page.props.recentNotifications ?? [])
+const role = computed(() => page.props.auth?.role ?? 'receptionist')
+const flash = computed(() => page.props.flash ?? {})
 
-// Dropdown Thông báo
+// Mobile sidebar drawer state
+const mobileSidebarOpen = ref(false)
+
+// Notifications state
 const showNotifications = ref(false)
+const recentNotifications = ref([])
+const unreadCount = ref(0)
 const notifRef = ref(null)
 
-// Dropdown Tài khoản User & Đăng xuất
+// User Menu Dropdown state
 const showUserMenu = ref(false)
 const userMenuRef = ref(null)
 
 function toggleNotifications() {
     showNotifications.value = !showNotifications.value
-    if (showNotifications.value) showUserMenu.value = false
+    showUserMenu.value = false
+    if (showNotifications.value) {
+        fetchNotifications()
+    }
 }
 
 function toggleUserMenu() {
     showUserMenu.value = !showUserMenu.value
-    if (showUserMenu.value) showNotifications.value = false
+    showNotifications.value = false
 }
 
 function handleClickOutside(e) {
@@ -38,56 +44,88 @@ function handleClickOutside(e) {
     }
 }
 
-let pollTimer = null
-
 onMounted(() => {
     document.addEventListener('click', handleClickOutside)
-
-    // Tự động kiểm tra thông báo mới mỗi 10 giây (chỉ nạp cục bộ dữ liệu thông báo, không giật lag màn hình)
-    pollTimer = setInterval(() => {
-        router.reload({
-            only: ['unreadNotificationsCount', 'recentNotifications'],
-            preserveScroll: true,
-            preserveState: true,
-        })
-    }, 10000)
+    fetchUnreadCount()
 })
 
 onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside)
-    if (pollTimer) clearInterval(pollTimer)
 })
 
-function markAsRead(id, url) {
-    router.patch(route('notifications.read', id), {}, {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: () => {
-            if (url) router.visit(url)
+async function fetchNotifications() {
+    try {
+        const res = await fetch('/api/notifications/recent')
+        if (res.ok) {
+            const data = await res.json()
+            recentNotifications.value = data.notifications
+            unreadCount.value = data.unread_count
         }
-    })
+    } catch {
+        // silent fail
+    }
 }
 
-function markAllAsRead() {
-    router.post(route('notifications.mark-all-read'), {}, {
-        preserveScroll: true,
-        preserveState: true,
-    })
+async function fetchUnreadCount() {
+    try {
+        const res = await fetch('/api/notifications/recent')
+        if (res.ok) {
+            const data = await res.json()
+            unreadCount.value = data.unread_count
+        }
+    } catch {
+        // silent fail
+    }
+}
+
+async function markAsRead(id, redirectUrl) {
+    try {
+        await fetch(`/notifications/${id}/mark-as-read`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                'Accept': 'application/json',
+            },
+        })
+        unreadCount.value = Math.max(0, unreadCount.value - 1)
+        showNotifications.value = false
+        if (redirectUrl) {
+            router.visit(redirectUrl)
+        }
+    } catch {
+        // silent
+    }
+}
+
+async function markAllAsRead() {
+    try {
+        await fetch('/notifications/mark-all-as-read', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                'Accept': 'application/json',
+            },
+        })
+        unreadCount.value = 0
+        recentNotifications.value.forEach(n => { n.read_at = new Date().toISOString() })
+    } catch {
+        // silent
+    }
 }
 
 const roleBadge = (r) => {
-    const roles = {
-        admin:       { label: 'Quản trị viên', class: 'bg-rose-50 text-rose-700 border-rose-200' },
-        vet:         { label: 'Bác sĩ Thú y', class: 'bg-sky-50 text-sky-700 border-sky-200' },
-        receptionist:{ label: 'Lễ tân tiếp đón', class: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-        accountant:  { label: 'Kế toán thu ngân', class: 'bg-amber-50 text-amber-700 border-amber-200' },
+    const map = {
+        admin:        { label: 'Quản trị viên', class: 'bg-rose-50 text-rose-700 border-rose-200' },
+        vet:          { label: 'Bác sĩ thú y',  class: 'bg-sky-50 text-sky-700 border-sky-200' },
+        receptionist: { label: 'Lễ tân tiếp đón', class: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+        accountant:   { label: 'Kế toán / Thu ngân', class: 'bg-amber-50 text-amber-700 border-amber-200' },
     }
-    return roles[r] ?? { label: r, class: 'bg-slate-100 text-slate-700 border-slate-200' }
+    return map[r] ?? { label: r, class: 'bg-slate-100 text-slate-700 border-slate-200' }
 }
 
 const timeAgo = (dateStr) => {
     if (!dateStr) return ''
-    const diff = Math.floor((new Date() - new Date(dateStr)) / 1000)
+    const diff = (new Date() - new Date(dateStr)) / 1000
     if (diff < 60) return 'Vừa xong'
     if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`
     if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`
@@ -96,30 +134,38 @@ const timeAgo = (dateStr) => {
 </script>
 
 <template>
-    <div class="flex h-screen overflow-hidden bg-[#F8FAFC] text-slate-800 font-sans antialiased selection:bg-sky-600 selection:text-white">
+    <div class="flex h-screen w-full overflow-hidden bg-[#F8FAFC]">
 
-        <!-- Sidebar bên trái (Cố định khung, menu cuộn độc lập) -->
-        <Sidebar />
+        <!-- Sidebar bên trái (Desktop cố định, Mobile trượt slide-out drawer) -->
+        <Sidebar :mobile-open="mobileSidebarOpen" @close="mobileSidebarOpen = false" />
 
-        <!-- Khu vực chính bên phải (Topbar cố định, Nội dung cuộn độc lập) -->
-        <div class="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
+        <!-- Khu vực chính bên phải (Topbar cố định, Nội dung cuộn độc lập tràn đều 100%) -->
+        <div class="flex-1 flex flex-col h-screen min-w-0 overflow-hidden w-full">
 
             <!-- Top Header Bar (Cố định ở đỉnh, không bị trôi) -->
-            <header class="h-16 shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200 px-6 flex items-center justify-between z-30 shadow-xs">
-                <!-- Left Status & Breadcrumb -->
-                <div class="flex items-center gap-2.5 text-xs text-slate-500">
+            <header class="h-16 shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between z-30 shadow-xs">
+                
+                <!-- Left: Hamburger button on mobile + Status & Breadcrumb -->
+                <div class="flex items-center gap-3 text-xs text-slate-500">
+                    <!-- Mobile Hamburger Button -->
+                    <button @click="mobileSidebarOpen = true"
+                        class="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none"
+                        title="Mở menu">
+                        <Icon name="menu" size="20" />
+                    </button>
+
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full font-semibold text-[11px]">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>Phòng khám VetCare</span>
+                        <span class="hidden sm:inline">Phòng khám</span> VetCare
                     </span>
-                    <span class="text-slate-300">/</span>
-                    <span class="text-slate-500 font-medium capitalize">
+                    <span class="text-slate-300 hidden sm:inline">/</span>
+                    <span class="text-slate-500 font-medium capitalize hidden md:inline">
                         {{ new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }) }}
                     </span>
                 </div>
 
                 <!-- Right Actions: Notification Bell + User Profile & Logout Dropdown -->
-                <div class="flex items-center gap-3.5">
+                <div class="flex items-center gap-3">
 
                     <!-- Notification Bell Dropdown -->
                     <div class="relative" ref="notifRef">
@@ -140,7 +186,7 @@ const timeAgo = (dateStr) => {
                             <div class="p-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
                                 <div class="flex items-center gap-1.5 font-bold text-slate-900">
                                     <span>Thông báo</span>
-                                    <span v-if="unreadCount > 0" class="text-[10px] bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.2 rounded-full font-mono font-bold">
+                                    <span v-if="unreadCount > 0" class="text-[10px] bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.2 rounded-full font-bold">
                                         {{ unreadCount }} mới
                                     </span>
                                 </div>
@@ -156,13 +202,11 @@ const timeAgo = (dateStr) => {
                                     @click="markAsRead(n.id, n.data.url)"
                                     class="p-3 hover:bg-slate-50 cursor-pointer transition-colors flex gap-2.5 items-start"
                                     :class="{ 'bg-sky-50/40': !n.read_at }">
-                                    <!-- Icon badge -->
                                     <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
                                         :class="n.data.type === 'low_stock' ? 'bg-rose-50 text-rose-600 border border-rose-100' : (n.data.type === 'new_appointment' ? 'bg-sky-50 text-sky-600 border border-sky-100' : 'bg-amber-50 text-amber-600 border border-amber-100')">
                                         <Icon :name="n.data.type === 'low_stock' ? 'alert' : (n.data.type === 'new_appointment' ? 'calendar' : 'clock')" size="13" />
                                     </div>
 
-                                    <!-- Content -->
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center justify-between gap-1">
                                             <p class="font-bold text-slate-900 text-[11px] truncate">{{ n.data.title ?? 'Thông báo' }}</p>
@@ -173,7 +217,6 @@ const timeAgo = (dateStr) => {
                                     </div>
                                 </div>
 
-                                <!-- Empty state -->
                                 <div v-if="recentNotifications.length === 0" class="p-8 text-center text-slate-400">
                                     <Icon name="bell" size="24" class="mx-auto text-slate-300 mb-1" />
                                     <p class="text-[11px] text-slate-500 font-medium">Không có thông báo nào</p>
@@ -192,7 +235,7 @@ const timeAgo = (dateStr) => {
 
                     <div class="h-5 w-px bg-slate-200"></div>
 
-                    <!-- User Profile & Logout Dropdown Menu (Hợp lý, đúng vị trí Topbar) -->
+                    <!-- User Profile & Logout Dropdown Menu -->
                     <div class="relative" ref="userMenuRef">
                         <button @click.stop="toggleUserMenu"
                             class="flex items-center gap-2.5 p-1.5 pr-2.5 rounded-xl hover:bg-slate-100 transition-colors focus:outline-none group">
@@ -238,7 +281,7 @@ const timeAgo = (dateStr) => {
                             <!-- Logout Button -->
                             <div class="p-1.5 border-t border-slate-100">
                                 <Link :href="route('logout')" method="post" as="button"
-                                    class="w-full flex items-center gap-2.5 px-3 py-2 text-rose-600 hover:bg-rose-50 rounded-lg font-semibold transition-colors text-left">
+                                    class="w-full flex items-center gap-2.5 px-3 py-2 text-rose-600 hover:bg-rose-50 rounded-lg font-semibold transition-colors text-left cursor-pointer">
                                     <Icon name="logout" size="15" class="text-rose-500" />
                                     <span>Đăng xuất khỏi hệ thống</span>
                                 </Link>
@@ -250,22 +293,22 @@ const timeAgo = (dateStr) => {
             </header>
 
             <!-- Flash messages thông báo -->
-            <div v-if="flash.success" class="mx-6 mt-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center justify-between text-xs font-semibold shadow-xs animate-in fade-in slide-in-from-top-2 duration-200 shrink-0">
+            <div v-if="flash.success" class="mx-4 sm:mx-6 mt-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center justify-between text-xs font-semibold shadow-xs animate-in fade-in slide-in-from-top-2 duration-200 shrink-0">
                 <div class="flex items-center gap-2">
                     <Icon name="check" size="16" class="text-emerald-600" />
                     <span>{{ flash.success }}</span>
                 </div>
             </div>
 
-            <div v-if="flash.error" class="mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl flex items-center justify-between text-xs font-semibold shadow-xs animate-in fade-in slide-in-from-top-2 duration-200 shrink-0">
+            <div v-if="flash.error" class="mx-4 sm:mx-6 mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl flex items-center justify-between text-xs font-semibold shadow-xs animate-in fade-in slide-in-from-top-2 duration-200 shrink-0">
                 <div class="flex items-center gap-2">
                     <Icon name="alert" size="16" class="text-rose-600" />
                     <span>{{ flash.error }}</span>
                 </div>
             </div>
 
-            <!-- Main Content Area (Cuộn độc lập với Sidebar và Topbar) -->
-            <main class="flex-1 overflow-y-auto p-6 lg:p-8 max-w-7xl w-full mx-auto">
+            <!-- Main Content Area (Dàn đều 100% chiều rộng, không bị co cụm ở giữa khi zoom nhỏ) -->
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-6 w-full">
                 <slot />
             </main>
 

@@ -34,11 +34,13 @@ Route::middleware(['auth', 'role:receptionist|admin'])->group(function () {
     Route::resource('customers', \App\Http\Controllers\CustomerController::class);
     Route::resource('pets', \App\Http\Controllers\PetController::class);
     Route::resource('appointments', \App\Http\Controllers\AppointmentController::class);
-    Route::patch(
+    Route::match(
+        ['post', 'patch'],
         'appointments/{appointment}/check-in',
         [\App\Http\Controllers\AppointmentController::class, 'checkIn']
     )->name('appointments.check-in');
-    Route::patch(
+    Route::match(
+        ['post', 'patch'],
         'appointments/{appointment}/confirm',
         [\App\Http\Controllers\AppointmentController::class, 'confirm']
     )->name('appointments.confirm');
@@ -79,12 +81,16 @@ Route::middleware(['auth', 'role:accountant|admin'])->group(function () {
 
 // ===== ROUTE THÔNG BÁO (TẤT CẢ USER ĐÃ ĐĂNG NHẬP) =====
 Route::middleware('auth')->group(function () {
+    Route::get('api/notifications/recent', [\App\Http\Controllers\NotificationController::class, 'recent'])
+        ->name('notifications.recent');
     Route::get('notifications', [\App\Http\Controllers\NotificationController::class, 'index'])
         ->name('notifications.index');
-    Route::patch('notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])
+    Route::match(['post', 'patch'], 'notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])
         ->name('notifications.read');
-    Route::post('notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
+    Route::match(['post', 'patch'], 'notifications/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead']);
+    Route::match(['post', 'patch'], 'notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
         ->name('notifications.mark-all-read');
+    Route::match(['post', 'patch'], 'notifications/mark-all-as-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead']);
     Route::delete('notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])
         ->name('notifications.destroy');
 });

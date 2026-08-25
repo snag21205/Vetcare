@@ -4,10 +4,11 @@ namespace App\Notifications;
 
 use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class AppointmentReminderNotification extends Notification
+class AppointmentReminderNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -23,8 +24,8 @@ class AppointmentReminderNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $time = $this->appointment->scheduled_at->format('H:i');
-        $date = $this->appointment->scheduled_at->format('d/m/Y');
+        $time = $this->appointment->scheduled_at ? $this->appointment->scheduled_at->format('H:i') : '';
+        $date = $this->appointment->scheduled_at ? $this->appointment->scheduled_at->format('d/m/Y') : '';
         $pet = $this->appointment->pet?->name ?? 'Bé thú cưng';
         $customer = $this->appointment->pet?->customer?->name ?? 'Quý khách';
         $greetingName = $notifiable->name ?? $customer;
@@ -36,7 +37,7 @@ class AppointmentReminderNotification extends Notification
             ->line("- **Thú cưng:** {$pet} ({$customer})")
             ->line("- **Giờ hẹn:** {$time}")
             ->line("- **Lý do khám:** {$this->appointment->reason}")
-            ->action('Xem lịch hẹn ngày mai', url('/appointments?date=' . $this->appointment->scheduled_at->format('Y-m-d')))
+            ->action('Xem lịch hẹn ngày mai', url('/appointments?date=' . ($this->appointment->scheduled_at ? $this->appointment->scheduled_at->format('Y-m-d') : '')))
             ->line('Vui lòng chuẩn bị sẵn sàng tiếp đón bệnh nhân.');
     }
 
@@ -45,9 +46,9 @@ class AppointmentReminderNotification extends Notification
         return [
             'type'           => 'appointment_reminder',
             'title'          => 'Nhắc lịch hẹn ngày mai',
-            'message'        => "Lịch hẹn ngày mai: Bé {$this->appointment->pet?->name} ({$this->appointment->pet?->customer?->name}) lúc {$this->appointment->scheduled_at->format('H:i')}",
+            'message'        => "Lịch hẹn ngày mai: Bé " . ($this->appointment->pet?->name ?? '') . " (" . ($this->appointment->pet?->customer?->name ?? '') . ") lúc " . ($this->appointment->scheduled_at ? $this->appointment->scheduled_at->format('H:i') : ''),
             'appointment_id' => $this->appointment->id,
-            'url'            => '/appointments?date=' . $this->appointment->scheduled_at->format('Y-m-d'),
+            'url'            => '/appointments?date=' . ($this->appointment->scheduled_at ? $this->appointment->scheduled_at->format('Y-m-d') : ''),
             'created_at'     => now()->toIso8601String(),
         ];
     }

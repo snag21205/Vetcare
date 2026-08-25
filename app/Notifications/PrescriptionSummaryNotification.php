@@ -4,10 +4,11 @@ namespace App\Notifications;
 
 use App\Models\MedicalRecord;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class PrescriptionSummaryNotification extends Notification
+class PrescriptionSummaryNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -25,7 +26,7 @@ class PrescriptionSummaryNotification extends Notification
     {
         $pet = $this->record->pet?->name ?? 'Bé thú cưng';
         $doctor = $this->record->doctor?->name ?? 'Bác sĩ VetCare';
-        $date = $this->record->created_at->format('d/m/Y');
+        $date = $this->record->created_at ? $this->record->created_at->format('d/m/Y') : date('d/m/Y');
         $customerName = $notifiable->name ?? ($this->record->pet?->customer?->name ?? 'Quý khách');
 
         $mail = (new MailMessage)

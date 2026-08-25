@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Icon from '@/Components/Icon.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
     pet: Object,
@@ -28,31 +29,31 @@ function submit() {
     <Head :title="`Sửa: ${pet.name}`" />
 
     <AuthenticatedLayout>
-        <div class="max-w-2xl mx-auto">
+        <div class="max-w-2xl mx-auto space-y-4">
             <!-- Breadcrumb -->
-            <nav class="flex items-center gap-1.5 text-xs text-gray-500 mb-4 font-medium">
-                <Link :href="route('pets.index')" class="hover:text-indigo-600 transition-colors">Vật nuôi</Link>
-                <Icon name="chevron-right" size="12" class="text-gray-400" />
-                <span class="text-gray-600 truncate max-w-xs">{{ pet.name }}</span>
-                <Icon name="chevron-right" size="12" class="text-gray-400" />
-                <span class="text-gray-900">Chỉnh sửa</span>
+            <nav class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <Link :href="route('pets.index')" class="hover:text-sky-600 transition-colors">Vật nuôi</Link>
+                <Icon name="chevron-right" size="12" class="text-slate-400" />
+                <span class="text-slate-600 truncate max-w-xs">{{ pet.name }}</span>
+                <Icon name="chevron-right" size="12" class="text-slate-400" />
+                <span class="text-slate-900 font-semibold">Chỉnh sửa</span>
             </nav>
 
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                <div class="border-b border-gray-100 pb-4 mb-5">
-                    <h2 class="text-base font-bold text-gray-900">Chỉnh sửa thông tin vật nuôi</h2>
-                    <p class="text-xs text-gray-500 mt-0.5">Cập nhật hồ sơ bệnh án và thông tin của {{ pet.name }}</p>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
+                <div class="border-b border-slate-100 pb-4 mb-5">
+                    <h2 class="text-base font-bold text-slate-900">Chỉnh sửa thông tin vật nuôi</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Cập nhật hồ sơ bệnh án và thông tin của {{ pet.name }}</p>
                 </div>
 
                 <form @submit.prevent="submit" class="space-y-4 text-xs">
 
                     <!-- Chủ nhân -->
                     <div>
-                        <label class="block font-medium text-gray-700 mb-1">
+                        <label class="block font-semibold text-slate-700 mb-1">
                             Chủ nhân <span class="text-rose-500">*</span>
                         </label>
                         <select v-model="form.customer_id"
-                            class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                             :class="{ 'border-rose-400 focus:ring-rose-500': form.errors.customer_id }">
                             <option value="">-- Chọn khách hàng --</option>
                             <option v-for="c in customers" :key="c.id" :value="c.id">
@@ -66,78 +67,78 @@ function submit() {
 
                     <!-- Tên -->
                     <div>
-                        <label class="block font-medium text-gray-700 mb-1">
+                        <label class="block font-semibold text-slate-700 mb-1">
                             Tên thú cưng <span class="text-rose-500">*</span>
                         </label>
                         <input v-model="form.name" type="text"
-                            class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                             :class="{ 'border-rose-400 focus:ring-rose-500': form.errors.name }" />
                         <p v-if="form.errors.name" class="text-rose-500 text-[11px] mt-1">{{ form.errors.name }}</p>
                     </div>
 
                     <!-- Loài & Giống -->
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1">
+                            <label class="block font-semibold text-slate-700 mb-1">
                                 Loài <span class="text-rose-500">*</span>
                             </label>
                             <select v-model="form.species"
-                                class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all">
                                 <option value="chó">Chó</option>
                                 <option value="mèo">Mèo</option>
                                 <option value="khác">Khác</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1">Giống</label>
+                            <label class="block font-semibold text-slate-700 mb-1">Giống</label>
                             <input v-model="form.breed" type="text"
-                                class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+                                class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all" />
                         </div>
                     </div>
 
                     <!-- Giới tính & Ngày sinh -->
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1">
+                            <label class="block font-semibold text-slate-700 mb-1">
                                 Giới tính <span class="text-rose-500">*</span>
                             </label>
                             <select v-model="form.gender"
-                                class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                                class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all">
                                 <option value="male">Đực</option>
                                 <option value="female">Cái</option>
                                 <option value="unknown">Chưa rõ</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1">Ngày sinh</label>
+                            <label class="block font-semibold text-slate-700 mb-1">Ngày sinh</label>
                             <input v-model="form.date_of_birth" type="date"
-                                class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-mono" />
+                                class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all" />
                         </div>
                     </div>
 
                     <!-- Cân nặng -->
                     <div>
-                        <label class="block font-medium text-gray-700 mb-1">Cân nặng (kg)</label>
+                        <label class="block font-semibold text-slate-700 mb-1">Cân nặng (kg)</label>
                         <input v-model="form.weight" type="number" step="0.1" min="0.1" max="100"
-                            class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-mono" />
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all tabular-nums font-semibold" />
                         <p v-if="form.errors.weight" class="text-rose-500 text-[11px] mt-1">{{ form.errors.weight }}</p>
                     </div>
 
                     <!-- Ghi chú -->
                     <div>
-                        <label class="block font-medium text-gray-700 mb-1">Ghi chú sức khỏe</label>
+                        <label class="block font-semibold text-slate-700 mb-1">Ghi chú sức khỏe</label>
                         <textarea v-model="form.note" rows="2"
-                            class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"></textarea>
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"></textarea>
                     </div>
 
-                    <div class="flex items-center gap-2.5 pt-3 border-t border-gray-100">
+                    <div class="flex items-center gap-2.5 pt-4 border-t border-slate-100">
                         <button type="submit" :disabled="form.processing"
-                            class="inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold px-5 py-2 rounded-lg text-xs shadow-sm transition-colors">
+                            class="inline-flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-xl text-xs shadow-xs transition-colors cursor-pointer">
                             <Icon name="check" size="14" />
                             <span>{{ form.processing ? 'Đang lưu...' : 'Lưu thay đổi' }}</span>
                         </button>
                         <Link :href="route('pets.index')"
-                            class="px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 text-xs font-medium transition-colors">
+                            class="px-4 py-2.5 border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-colors">
                             Hủy
                         </Link>
                     </div>

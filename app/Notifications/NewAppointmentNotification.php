@@ -4,10 +4,11 @@ namespace App\Notifications;
 
 use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewAppointmentNotification extends Notification
+class NewAppointmentNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -24,7 +25,7 @@ class NewAppointmentNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $time = $this->appointment->scheduled_at->format('H:i d/m/Y');
+        $time = $this->appointment->scheduled_at ? $this->appointment->scheduled_at->format('H:i d/m/Y') : '';
         $pet = $this->appointment->pet?->name ?? 'Vật nuôi';
         $customer = $this->appointment->pet?->customer?->name ?? 'Khách hàng';
         $greetingName = $notifiable->name ?? 'Quý khách';
@@ -46,7 +47,7 @@ class NewAppointmentNotification extends Notification
         return [
             'type'           => 'new_appointment',
             'title'          => 'Lịch hẹn khám mới',
-            'message'        => "Lịch hẹn cho bé {$this->appointment->pet?->name} ({$this->appointment->pet?->customer?->name}) lúc {$this->appointment->scheduled_at->format('H:i d/m')}",
+            'message'        => "Lịch hẹn cho bé " . ($this->appointment->pet?->name ?? '') . " (" . ($this->appointment->pet?->customer?->name ?? '') . ") lúc " . ($this->appointment->scheduled_at ? $this->appointment->scheduled_at->format('H:i d/m') : ''),
             'appointment_id' => $this->appointment->id,
             'url'            => '/appointments',
             'created_at'     => now()->toIso8601String(),
