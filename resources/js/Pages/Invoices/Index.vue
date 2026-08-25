@@ -95,7 +95,7 @@ function payInvoice(id, invoiceNumber) {
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-left">
-                    <thead class="bg-gray-50/75 text-gray-500 font-mono uppercase text-[11px] border-b border-gray-200">
+                    <thead class="bg-slate-50/80 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
                         <tr>
                             <th class="px-5 py-3 font-semibold">Mã hóa đơn</th>
                             <th class="px-5 py-3 font-semibold">Khách hàng</th>

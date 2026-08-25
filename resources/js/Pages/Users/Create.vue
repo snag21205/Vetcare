@@ -25,61 +25,61 @@ function submit() {
     <Head title="Thêm nhân viên mới" />
 
     <AuthenticatedLayout>
-        <div class="max-w-2xl mx-auto">
+        <div class="max-w-2xl mx-auto space-y-4">
             <!-- Breadcrumb -->
-            <nav class="flex items-center gap-1.5 text-xs text-gray-500 mb-4 font-medium">
-                <Link :href="route('users.index')" class="hover:text-indigo-600 transition-colors">Nhân viên</Link>
-                <Icon name="chevron-right" size="12" class="text-gray-400" />
-                <span class="text-gray-900">Thêm nhân viên mới</span>
+            <nav class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                <Link :href="route('users.index')" class="hover:text-sky-600 transition-colors">Nhân viên</Link>
+                <Icon name="chevron-right" size="12" class="text-slate-400" />
+                <span class="text-slate-900 font-semibold">Thêm nhân viên mới</span>
             </nav>
 
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
-                <div class="border-b border-gray-100 pb-4 mb-5">
-                    <h2 class="text-base font-bold text-gray-900">Tạo tài khoản Nhân viên</h2>
-                    <p class="text-xs text-gray-500 mt-0.5">Cấp tài khoản đăng nhập và phân quyền truy cập hệ thống phòng khám</p>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
+                <div class="border-b border-slate-100 pb-4 mb-5">
+                    <h2 class="text-base font-bold text-slate-900">Tạo tài khoản Nhân viên</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Cấp tài khoản đăng nhập và phân quyền truy cập hệ thống phòng khám</p>
                 </div>
 
                 <form @submit.prevent="submit" class="space-y-4 text-xs">
 
                     <!-- Họ và tên -->
                     <div>
-                        <label class="block font-medium text-gray-700 mb-1">
+                        <label class="block font-semibold text-slate-700 mb-1">
                             Họ và tên <span class="text-rose-500">*</span>
                         </label>
                         <input v-model="form.name" type="text"
-                            class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                             :class="{ 'border-rose-400 focus:ring-rose-500': form.errors.name }"
                             placeholder="Nguyễn Văn A, BS. Trần Minh..." />
                         <p v-if="form.errors.name" class="text-rose-500 text-[11px] mt-1">{{ form.errors.name }}</p>
                     </div>
 
                     <!-- Email & SĐT -->
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1">
+                            <label class="block font-semibold text-slate-700 mb-1">
                                 Email đăng nhập <span class="text-rose-500">*</span>
                             </label>
                             <input v-model="form.email" type="email"
-                                class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-mono"
+                                class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                                 :class="{ 'border-rose-400 focus:ring-rose-500': form.errors.email }"
                                 placeholder="nhanvien@vetcare.vn" />
                             <p v-if="form.errors.email" class="text-rose-500 text-[11px] mt-1">{{ form.errors.email }}</p>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1">Số điện thoại</label>
+                            <label class="block font-semibold text-slate-700 mb-1">Số điện thoại</label>
                             <input v-model="form.phone" type="text"
-                                class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-mono"
+                                class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all tabular-nums"
                                 placeholder="0901234567" />
                         </div>
                     </div>
 
                     <!-- Mật khẩu khởi tạo -->
                     <div>
-                        <label class="block font-medium text-gray-700 mb-1">
+                        <label class="block font-semibold text-slate-700 mb-1">
                             Mật khẩu khởi tạo <span class="text-rose-500">*</span>
                         </label>
                         <input v-model="form.password" type="password"
-                            class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all font-mono"
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                             :class="{ 'border-rose-400 focus:ring-rose-500': form.errors.password }"
                             placeholder="•••••••• (Tối thiểu 6 ký tự)" />
                         <p v-if="form.errors.password" class="text-rose-500 text-[11px] mt-1">{{ form.errors.password }}</p>
@@ -87,11 +87,11 @@ function submit() {
 
                     <!-- Vai trò (Role) -->
                     <div>
-                        <label class="block font-medium text-gray-700 mb-1">
+                        <label class="block font-semibold text-slate-700 mb-1">
                             Vai trò / Phân quyền <span class="text-rose-500">*</span>
                         </label>
                         <select v-model="form.role"
-                            class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                            class="w-full bg-slate-50/50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                             :class="{ 'border-rose-400 focus:ring-rose-500': form.errors.role }">
                             <option v-for="(label, key) in roles" :key="key" :value="key">
                                 {{ label }}
@@ -101,23 +101,23 @@ function submit() {
                     </div>
 
                     <!-- Trạng thái kích hoạt -->
-                    <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                        <label class="flex items-center gap-2 cursor-pointer">
+                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+                        <label class="flex items-center gap-2.5 cursor-pointer">
                             <input type="checkbox" v-model="form.is_active"
-                                class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-                            <span class="font-medium text-gray-800">Kích hoạt tài khoản ngay sau khi tạo</span>
+                                class="rounded border-slate-300 text-sky-600 focus:ring-sky-500" />
+                            <span class="font-semibold text-slate-800">Kích hoạt tài khoản ngay sau khi tạo</span>
                         </label>
                     </div>
 
                     <!-- Buttons -->
-                    <div class="flex items-center gap-2.5 pt-3 border-t border-gray-100">
+                    <div class="flex items-center gap-2.5 pt-4 border-t border-slate-100">
                         <button type="submit" :disabled="form.processing"
-                            class="inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold px-5 py-2 rounded-lg text-xs shadow-sm transition-colors">
+                            class="inline-flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-semibold px-5 py-2.5 rounded-xl text-xs shadow-xs transition-colors cursor-pointer">
                             <Icon name="check" size="14" />
                             <span>{{ form.processing ? 'Đang tạo...' : 'Tạo tài khoản' }}</span>
                         </button>
                         <Link :href="route('users.index')"
-                            class="px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 text-xs font-medium transition-colors">
+                            class="px-4 py-2.5 border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-colors">
                             Hủy
                         </Link>
                     </div>

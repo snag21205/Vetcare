@@ -78,7 +78,7 @@ function changeDay(offset) {
                 <p class="text-xs text-gray-500 mt-0.5">Theo dõi lịch khám bệnh và điều phối tiếp đón bệnh nhân</p>
             </div>
             <Link :href="route('appointments.create')"
-                class="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors">
+                class="inline-flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors">
                 <Icon name="plus" size="16" />
                 <span>Đặt lịch hẹn</span>
             </Link>

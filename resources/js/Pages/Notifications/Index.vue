@@ -60,7 +60,7 @@ const timeAgo = (dateStr) => {
                 </div>
 
                 <button v-if="unreadCount > 0" @click="markAllAsRead"
-                    class="inline-flex items-center justify-center gap-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3.5 py-2 rounded-lg shadow-2xs transition-colors">
+                    class="inline-flex items-center justify-center gap-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3.5 py-2 rounded-lg shadow-xs transition-colors">
                     <Icon name="check-check" size="14" class="text-indigo-600" />
                     <span>Đánh dấu tất cả đã đọc</span>
                 </button>

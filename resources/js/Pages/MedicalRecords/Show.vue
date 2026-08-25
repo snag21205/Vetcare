@@ -103,7 +103,7 @@ function printRecord() {
                     <div class="flex items-center gap-2">
                         <!-- Nút Xuất PDF (Tuần 7) -->
                         <a :href="route('medical-records.pdf', record.id)" target="_blank"
-                            class="inline-flex items-center gap-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg font-semibold transition-colors shadow-2xs">
+                            class="inline-flex items-center gap-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg font-semibold transition-colors shadow-xs">
                             <Icon name="document" size="13" />
                             <span>Xuất PDF</span>
                         </a>

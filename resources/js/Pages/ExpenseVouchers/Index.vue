@@ -72,7 +72,7 @@ const formatCurrency = (val) => {
                 <p class="text-xs text-gray-500 mt-0.5">Theo dõi dòng tiền chi ra cho nhập kho thuốc, mặt bằng và vận hành phòng khám</p>
             </div>
             <Link :href="route('expense-vouchers.create')"
-                class="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors">
+                class="inline-flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors">
                 <Icon name="plus" size="16" />
                 <span>Lập phiếu chi mới</span>
             </Link>
@@ -85,13 +85,13 @@ const formatCurrency = (val) => {
                     <Icon name="document" size="20" />
                 </div>
                 <div>
-                    <span class="text-[11px] font-mono uppercase font-semibold text-rose-800">Tổng chi tiêu tháng {{ month.substring(5, 7) }}/{{ month.substring(0, 4) }}</span>
+                    <span class="text-[11px] uppercase font-semibold text-rose-800 tracking-wider">Tổng chi tiêu tháng {{ month.substring(5, 7) }}/{{ month.substring(0, 4) }}</span>
                     <p class="text-xs text-gray-600 mt-0.5">Bao gồm nhập kho thuốc, chi phí điện nước, mặt bằng và các khoản chi khác</p>
                 </div>
             </div>
 
             <div class="sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-rose-200">
-                <span class="text-[10px] text-gray-500 font-mono uppercase block font-semibold">Tổng chi</span>
+                <span class="text-[10px] text-gray-500 uppercase block font-semibold tracking-wider">Tổng chi</span>
                 <span class="text-2xl font-bold font-mono text-rose-600 block">
                     {{ formatCurrency(totalMonthExpense) }}
                 </span>
@@ -106,16 +106,16 @@ const formatCurrency = (val) => {
                     <Icon name="search" size="15" />
                 </div>
                 <input v-model="search" type="text" placeholder="Tìm theo lý do chi..."
-                    class="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm" />
+                    class="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all shadow-sm" />
             </div>
 
             <!-- Tháng -->
             <input v-model="month" type="month"
-                class="border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono shadow-sm" />
+                class="border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white font-mono shadow-sm" />
 
             <!-- Danh mục chi -->
             <select v-model="category"
-                class="border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm">
+                class="border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white shadow-sm">
                 <option value="">-- Tất cả danh mục --</option>
                 <option v-for="(label, key) in categories" :key="key" :value="key">
                     {{ label }}
@@ -127,7 +127,7 @@ const formatCurrency = (val) => {
         <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-left">
-                    <thead class="bg-gray-50/75 text-gray-500 font-mono uppercase text-[11px] border-b border-gray-200">
+                    <thead class="bg-slate-50/80 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
                         <tr>
                             <th class="px-5 py-3 font-semibold">Mã / Ngày lập</th>
                             <th class="px-5 py-3 font-semibold">Danh mục</th>

@@ -141,7 +141,7 @@ function applyDiagnosis() {
                     <div class="p-4 bg-gradient-to-r from-indigo-50/80 to-purple-50/50 border border-indigo-200 rounded-xl space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-mono font-bold uppercase text-indigo-700 tracking-wider">CHẨN ĐOÁN CÓ KHẢ NĂNG CAO NHẤT</span>
-                            <span class="text-[11px] bg-indigo-600 text-white font-mono font-bold px-2 py-0.5 rounded-full shadow-2xs">
+                            <span class="text-[11px] bg-indigo-600 text-white font-mono font-bold px-2 py-0.5 rounded-full shadow-xs">
                                 Độ tin cậy: {{ result.confidence ?? '85%' }}
                             </span>
                         </div>
