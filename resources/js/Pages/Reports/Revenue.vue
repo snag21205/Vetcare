@@ -103,18 +103,24 @@ function renderCharts() {
 
     // 2. Breakdown Chart (Doughnut)
     if (breakdownChartCanvas.value) {
-        const total = (props.summary.revenue_service || 0) + (props.summary.revenue_medicine || 0)
+        const examRev = Number(props.summary.total_exam || 0)
+        const serviceRev = Number(props.summary.total_service || 0)
+        const medicineRev = Number(props.summary.total_medicine || 0)
+        const total = examRev + serviceRev + medicineRev
+
+        const chartData = total > 0 
+            ? [examRev, serviceRev, medicineRev] 
+            : [1, 1, 1] // placeholder if all 0
+
         breakdownChartInstance = new Chart(breakdownChartCanvas.value, {
             type: 'doughnut',
             data: {
-                labels: ['Dịch vụ kỹ thuật', 'Thuốc & Vật tư'],
+                labels: ['Phí khám & Tư vấn', 'Dịch vụ kỹ thuật', 'Thuốc & Vật tư'],
                 datasets: [{
-                    data: [
-                        props.summary.revenue_service || 0,
-                        props.summary.revenue_medicine || 0
-                    ],
+                    data: total > 0 ? [examRev, serviceRev, medicineRev] : [0, 0, 0],
                     backgroundColor: [
                         '#0284c7', // Sky 600
+                        '#6366f1', // Indigo 500
                         '#10b981', // Emerald 500
                     ],
                     borderWidth: 2,
@@ -139,7 +145,7 @@ function renderCharts() {
                         }
                     }
                 },
-                cutout: '70%'
+                cutout: '68%'
             }
         })
     }
@@ -149,7 +155,7 @@ onMounted(() => {
     nextTick(() => renderCharts())
 })
 
-watch(() => props.dailyData, () => {
+watch(() => [props.dailyData, props.summary], () => {
     nextTick(() => renderCharts())
 }, { deep: true })
 </script>
