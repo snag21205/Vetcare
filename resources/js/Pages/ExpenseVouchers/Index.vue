@@ -80,7 +80,7 @@ const formatCurrency = (val) => {
             </div>
 
             <!-- Banner Tổng chi trong tháng -->
-            <div class="bg-gradient-to-r from-rose-50 to-orange-50/50 border border-rose-200/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs text-xs">
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs text-xs">
                 <div class="flex items-center gap-3.5">
                     <div class="w-11 h-11 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
                         <Icon name="document" size="20" />

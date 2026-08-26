@@ -100,8 +100,8 @@ function applyDiagnosis() {
             <!-- Header -->
             <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center shadow-xs">
-                        <Icon name="sparkles" size="18" class="animate-pulse" />
+                    <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-xs">
+                        <Icon name="sparkles" size="18" />
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
@@ -143,7 +143,7 @@ function applyDiagnosis() {
                     <div class="relative inline-flex items-center justify-center">
                         <!-- Outer pulse ring -->
                         <div class="w-16 h-16 rounded-full bg-sky-400/20 animate-ping absolute"></div>
-                        <div class="w-14 h-14 rounded-full bg-indigo-500/10 animate-pulse absolute"></div>
+                        <div class="w-14 h-14 rounded-full bg-sky-500/10 animate-pulse absolute"></div>
                         <!-- Spinner -->
                         <div class="w-12 h-12 rounded-full border-3 border-sky-100 border-t-sky-600 animate-spin"></div>
                         <div class="absolute inset-0 flex items-center justify-center text-sky-600">
@@ -162,7 +162,7 @@ function applyDiagnosis() {
 
                     <!-- Animated Progress Bar -->
                     <div class="w-48 h-1.5 bg-slate-100 rounded-full mx-auto overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-sky-500 to-indigo-600 rounded-full animate-pulse w-3/4 mx-auto"></div>
+                        <div class="h-full bg-sky-600 rounded-full animate-pulse w-3/4 mx-auto"></div>
                     </div>
                 </div>
 
@@ -182,7 +182,7 @@ function applyDiagnosis() {
                 <div v-else-if="result" class="space-y-4 animate-in fade-in duration-200">
 
                     <!-- Chẩn đoán chính -->
-                    <div class="p-4 bg-gradient-to-r from-sky-50 to-blue-50/60 border border-sky-200 rounded-2xl space-y-2">
+                    <div class="p-4 bg-sky-50/80 border border-sky-200 rounded-2xl space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-bold uppercase text-sky-700 tracking-wider">CHẨN ĐOÁN CÓ KHẢ NĂNG CAO NHẤT</span>
                             <span class="text-[11px] bg-sky-600 text-white font-bold px-2.5 py-0.5 rounded-full shadow-2xs">

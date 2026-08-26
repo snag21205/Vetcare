@@ -114,7 +114,7 @@ const roleBadge = (r) => {
                                 <!-- Nhân viên -->
                                 <td class="px-5 py-3.5">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-600 to-blue-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                                        <div class="w-8 h-8 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                                             {{ u.name.charAt(0).toUpperCase() }}
                                         </div>
                                         <div>

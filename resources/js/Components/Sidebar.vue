@@ -50,12 +50,12 @@ onMounted(() => {
         <!-- Fixed Header / Brand (Không bị cuộn theo menu) -->
         <div class="h-16 shrink-0 px-5 flex items-center justify-between border-b border-slate-100 bg-white">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 flex items-center justify-center text-white shadow-sm shadow-sky-500/20">
-                    <Icon name="pet" size="19" />
+                <div class="w-9 h-9 rounded-xl bg-sky-600 flex items-center justify-center text-white shadow-xs">
+                    <Icon name="pet" size="20" />
                 </div>
                 <div>
-                    <h1 class="text-base font-extrabold text-slate-900 tracking-tight leading-tight">VetCare</h1>
-                    <p class="text-[10px] text-sky-600 font-semibold uppercase tracking-wider">Clinic OS</p>
+                    <h1 class="text-base font-bold text-slate-900 tracking-tight leading-tight">VetCare</h1>
+                    <p class="text-[10px] text-sky-600 font-bold uppercase tracking-wider">Clinic OS</p>
                 </div>
             </div>
 

@@ -150,9 +150,9 @@ const timeAgo = (dateStr) => {
                 <div class="flex items-center gap-3 text-xs text-slate-500">
                     <!-- Mobile Hamburger Button -->
                     <button @click="mobileSidebarOpen = true"
-                        class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 lg:hidden p-2 rounded-xl text-white shadow-sm shadow-sky-500/20 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none"
+                        class="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none cursor-pointer"
                         title="Mở menu">
-                        <Icon name="pet" size="19" />
+                        <Icon name="pet" size="19" class="text-sky-600" />
                     </button>
 
                     <span
@@ -253,7 +253,7 @@ const timeAgo = (dateStr) => {
                             class="flex items-center gap-2.5 p-1.5 pr-2.5 rounded-xl hover:bg-slate-100 transition-colors focus:outline-none group">
                             <!-- Avatar -->
                             <div
-                                class="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-600 to-blue-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                                class="w-8 h-8 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
                                 {{ user.name ? user.name.charAt(0).toUpperCase() : 'U' }}
                             </div>
                             <!-- Name & Role -->

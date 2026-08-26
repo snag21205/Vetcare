@@ -315,7 +315,7 @@ function submit() {
 
                             <!-- Nút AI Gợi ý chẩn đoán -->
                             <button type="button" @click="showAiModal = true"
-                                class="inline-flex items-center gap-1.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white px-3.5 py-1.5 rounded-xl font-semibold text-xs transition-all shadow-xs cursor-pointer">
+                                class="inline-flex items-center gap-1.5 bg-sky-600 hover:bg-sky-700 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs transition-colors shadow-xs cursor-pointer">
                                 <Icon name="sparkles" size="14" />
                                 <span>AI Gợi ý chẩn đoán</span>
                             </button>
