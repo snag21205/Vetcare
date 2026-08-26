@@ -166,13 +166,13 @@ const statusConfig = {
                     <!-- Trạng thái & Action Buttons -->
                     <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                         <!-- Badges -->
-                        <div class="flex items-center gap-1.5">
+                        <div class="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
                             <span :class="statusConfig[apt.status]?.class"
-                                class="text-[11px] px-2.5 py-0.5 rounded-full font-semibold border">
+                                class="whitespace-nowrap inline-flex items-center justify-center text-[11px] px-2.5 py-0.5 rounded-full font-semibold border shrink-0">
                                 {{ statusConfig[apt.status]?.label }}
                             </span>
                             <span v-if="apt.medical_record && apt.medical_record.status === 'in_progress'"
-                                class="text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full font-semibold">
+                                class="whitespace-nowrap inline-flex items-center justify-center text-[11px] bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full font-semibold shrink-0">
                                 Đang khám
                             </span>
                         </div>

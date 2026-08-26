@@ -125,9 +125,9 @@ const formatDate = (dateStr) => {
                                 </td>
 
                                 <!-- Trạng thái -->
-                                <td class="px-5 py-3.5 text-center">
+                                <td class="px-5 py-3.5 text-center whitespace-nowrap">
                                     <span :class="statusConfig[record.status]?.class"
-                                        class="text-[11px] px-2.5 py-0.5 rounded-full font-semibold border">
+                                        class="whitespace-nowrap inline-flex items-center justify-center text-[11px] px-2.5 py-0.5 rounded-full font-semibold border shrink-0">
                                         {{ statusConfig[record.status]?.label ?? record.status }}
                                     </span>
                                 </td>

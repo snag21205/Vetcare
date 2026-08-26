@@ -30,8 +30,15 @@ class InvoiceController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $stats = [
+            'total_revenue' => Invoice::where('status', 'paid')->sum('total_amount'),
+            'unpaid_count'  => Invoice::where('status', 'unpaid')->count(),
+            'today_revenue' => Invoice::where('status', 'paid')->whereDate('updated_at', today())->sum('total_amount'),
+        ];
+
         return Inertia::render('Invoices/Index', [
             'invoices' => $invoices,
+            'stats'    => $stats,
             'filters'  => [
                 'search' => $search,
                 'status' => $status,

@@ -2,6 +2,7 @@
 import { useAuth } from '@/Composables/useAuth'
 import Icon from '@/Components/Icon.vue'
 import { Link } from '@inertiajs/vue3'
+import { ref, onMounted, nextTick } from 'vue'
 
 const props = defineProps({
     mobileOpen: {
@@ -13,6 +14,23 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
+
+const navRef = ref(null)
+
+function handleScroll(e) {
+    if (e.target) {
+        sessionStorage.setItem('sidebar_scroll_pos', e.target.scrollTop)
+    }
+}
+
+onMounted(() => {
+    nextTick(() => {
+        const savedPos = sessionStorage.getItem('sidebar_scroll_pos')
+        if (savedPos && navRef.value) {
+            navRef.value.scrollTop = Number(savedPos)
+        }
+    })
+})
 </script>
 
 <template>
@@ -48,8 +66,8 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
             </button>
         </div>
 
-        <!-- Navigation Menu (Chỉ vùng này cuộn độc lập) -->
-        <nav class="flex-1 px-3 py-4 space-y-5 overflow-y-auto text-xs custom-scrollbar">
+        <!-- Navigation Menu (Chỉ vùng này cuộn độc lập & giữ nguyên vị trí cuộn) -->
+        <nav ref="navRef" @scroll="handleScroll" class="flex-1 px-3 py-4 space-y-5 overflow-y-auto text-xs custom-scrollbar">
 
             <!-- Core -->
             <div class="space-y-1">
@@ -57,7 +75,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url === '/dashboard' }">
-                    <Icon name="dashboard" size="16" />
+                    <Icon name="dashboard" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Tổng quan</span>
                 </Link>
             </div>
@@ -72,7 +90,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/customers') }">
-                    <Icon name="users" size="16" />
+                    <Icon name="users" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Khách hàng</span>
                 </Link>
 
@@ -80,7 +98,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/pets') }">
-                    <Icon name="pet" size="16" />
+                    <Icon name="pet" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Vật nuôi</span>
                 </Link>
 
@@ -88,7 +106,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/appointments') }">
-                    <Icon name="calendar" size="16" />
+                    <Icon name="calendar" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Lịch hẹn khám</span>
                 </Link>
             </div>
@@ -103,7 +121,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/medical-records') }">
-                    <Icon name="stethoscope" size="16" />
+                    <Icon name="stethoscope" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Hồ sơ khám bệnh</span>
                 </Link>
             </div>
@@ -118,7 +136,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/invoices') }">
-                    <Icon name="invoice" size="16" />
+                    <Icon name="invoice" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Hóa đơn thu tiền</span>
                 </Link>
 
@@ -126,7 +144,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/expense-vouchers') }">
-                    <Icon name="document" size="16" />
+                    <Icon name="document" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Phiếu chi sổ quỹ</span>
                 </Link>
             </div>
@@ -141,7 +159,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/reports/revenue') }">
-                    <Icon name="chart" size="16" />
+                    <Icon name="chart" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Báo cáo doanh thu</span>
                 </Link>
 
@@ -149,7 +167,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/reports/diseases') }">
-                    <Icon name="stethoscope" size="16" />
+                    <Icon name="stethoscope" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Bệnh phổ biến</span>
                 </Link>
 
@@ -157,7 +175,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/reports/loyal-customers') }">
-                    <Icon name="users" size="16" />
+                    <Icon name="users" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Khách thân thiết</span>
                 </Link>
             </div>
@@ -172,7 +190,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/medicines') }">
-                    <Icon name="medicine" size="16" />
+                    <Icon name="medicine" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Kho thuốc & Vật tư</span>
                 </Link>
 
@@ -180,7 +198,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/services') }">
-                    <Icon name="service" size="16" />
+                    <Icon name="service" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Bảng giá dịch vụ</span>
                 </Link>
 
@@ -188,7 +206,7 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
                     @click="emit('close')"
                     class="sidebar-link"
                     :class="{ 'sidebar-link-active': $page.url.startsWith('/users') }">
-                    <Icon name="user" size="16" />
+                    <Icon name="user" size="16" class="transition-transform duration-200 group-hover:scale-110" />
                     <span>Tài khoản nhân viên</span>
                 </Link>
             </div>
@@ -208,9 +226,12 @@ const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
 
 <style scoped>
 .sidebar-link {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:text-sky-700 hover:bg-sky-50/70 transition-colors font-medium;
+    @apply relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-sky-700 hover:bg-sky-50/80 transition-all duration-200 font-medium overflow-hidden;
+}
+.sidebar-link:hover :deep(svg) {
+    transform: scale(1.1);
 }
 .sidebar-link-active {
-    @apply bg-sky-50 text-sky-700 font-bold border-l-4 border-sky-600 rounded-r-lg rounded-l-none pl-2.5 shadow-xs;
+    @apply bg-sky-50 text-sky-700 font-bold border-l-4 border-sky-600 rounded-r-xl rounded-l-none pl-3 shadow-xs;
 }
 </style>
