@@ -80,6 +80,7 @@ watch(() => props.diseases, () => {
 </script>
 
 <template>
+
     <Head title="Báo cáo Bệnh phổ biến" />
 
     <AuthenticatedLayout>
@@ -88,17 +89,19 @@ watch(() => props.diseases, () => {
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 class="text-xl font-bold text-slate-900 tracking-tight">Thống kê Bệnh phổ biến theo Loài</h1>
-                    <p class="text-xs text-slate-500 mt-0.5">Tổng hợp chẩn đoán từ hồ sơ bệnh án để phục vụ dự báo dịch bệnh và nhập kho thuốc</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Tổng hợp chẩn đoán từ hồ sơ bệnh án để phục vụ dự báo dịch
+                        bệnh và nhập kho thuốc</p>
                 </div>
             </div>
 
             <!-- Filter bar -->
-            <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div
+                class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
                 <div class="flex items-center gap-2">
                     <span class="font-semibold text-slate-600">Lọc theo loài vật nuôi:</span>
                     <select v-model="speciesFilter"
-                        class="border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white font-medium">
-                        <option value="">-- Tất cả loài --</option>
+                        class="border border-slate-200 rounded-xl pr-9 px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white font-medium">
+                        <option value=""> Tất cả loài </option>
                         <option value="chó">Chó</option>
                         <option value="mèo">Mèo</option>
                         <option value="chim">Chim</option>
@@ -107,7 +110,8 @@ watch(() => props.diseases, () => {
                 </div>
 
                 <span class="text-xs text-slate-500">
-                    Tổng cộng: <strong class="text-slate-900 font-bold tabular-nums">{{ totalCases }}</strong> ca khám bệnh được ghi nhận
+                    Tổng cộng: <strong class="text-slate-900 font-bold tabular-nums">{{ totalCases }}</strong> ca khám
+                    bệnh được ghi nhận
                 </span>
             </div>
 
@@ -131,7 +135,8 @@ watch(() => props.diseases, () => {
                         <div v-for="sp in speciesBreakdown" :key="sp.species"
                             class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
                                     <Icon name="pet" size="15" />
                                 </div>
                                 <span class="capitalize font-semibold text-slate-900">{{ sp.species }}</span>
@@ -149,7 +154,8 @@ watch(() => props.diseases, () => {
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
-                        <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                        <thead
+                            class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
                             <tr>
                                 <th class="px-5 py-3.5 font-semibold text-center w-12">STT</th>
                                 <th class="px-5 py-3.5 font-semibold">Loài vật nuôi</th>

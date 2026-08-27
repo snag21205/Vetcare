@@ -11,7 +11,7 @@ const props = defineProps({
 })
 
 const search = ref(props.filters.search ?? '')
-const role   = ref(props.filters.role ?? '')
+const role = ref(props.filters.role ?? '')
 
 let searchTimeout = null
 watch([search, role], ([newSearch, newRole]) => {
@@ -50,16 +50,17 @@ function deleteUser(id, name) {
 
 const roleBadge = (r) => {
     const map = {
-        admin:        { label: 'Quản trị viên', class: 'bg-rose-50 text-rose-700 border-rose-200' },
-        vet:          { label: 'Bác sĩ Thú y', class: 'bg-sky-50 text-sky-700 border-sky-200' },
+        admin: { label: 'Quản trị viên', class: 'bg-rose-50 text-rose-700 border-rose-200' },
+        vet: { label: 'Bác sĩ Thú y', class: 'bg-sky-50 text-sky-700 border-sky-200' },
         receptionist: { label: 'Lễ tân', class: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-        accountant:   { label: 'Kế toán', class: 'bg-amber-50 text-amber-700 border-amber-200' },
+        accountant: { label: 'Kế toán', class: 'bg-amber-50 text-amber-700 border-amber-200' },
     }
     return map[r] ?? { label: r, class: 'bg-slate-100 text-slate-700 border-slate-200' }
 }
 </script>
 
 <template>
+
     <Head title="Quản lý Nhân viên" />
 
     <AuthenticatedLayout>
@@ -68,7 +69,8 @@ const roleBadge = (r) => {
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 class="text-xl font-bold text-slate-900 tracking-tight">Quản lý Tài khoản & Phân quyền</h1>
-                    <p class="text-xs text-slate-500 mt-0.5">Danh sách nhân viên phòng khám, cấp quyền truy cập và kiểm soát trạng thái tài khoản</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Danh sách nhân viên phòng khám, cấp quyền truy cập và kiểm
+                        soát trạng thái tài khoản</p>
                 </div>
                 <Link :href="route('users.create')"
                     class="inline-flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xs transition-colors shrink-0">
@@ -78,7 +80,8 @@ const roleBadge = (r) => {
             </div>
 
             <!-- Filter bar -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs text-xs">
+            <div
+                class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs text-xs">
                 <div class="relative flex-1 max-w-md">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <Icon name="search" size="15" />
@@ -88,8 +91,8 @@ const roleBadge = (r) => {
                 </div>
 
                 <select v-model="role"
-                    class="border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white font-medium">
-                    <option value="">-- Tất cả vai trò --</option>
+                    class="border border-slate-200 rounded-xl pr-9 px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white font-medium">
+                    <option value=""> Tất cả vai trò </option>
                     <option v-for="r in roles" :key="r" :value="r">
                         {{ roleBadge(r).label }}
                     </option>
@@ -97,10 +100,12 @@ const roleBadge = (r) => {
             </div>
 
             <!-- Table Container (Cuộn nội bộ bên trong) -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col overflow-hidden max-h-[calc(100vh-250px)] min-h-[380px] text-xs">
+            <div
+                class="bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col overflow-hidden max-h-[calc(100vh-250px)] min-h-[380px] text-xs">
                 <div class="flex-1 overflow-y-auto overflow-x-auto">
                     <table class="w-full text-left min-w-[650px]">
-                        <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
+                        <thead
+                            class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
                             <tr>
                                 <th class="px-5 py-3.5">Nhân viên</th>
                                 <th class="px-5 py-3.5">Email & SĐT</th>
@@ -114,12 +119,14 @@ const roleBadge = (r) => {
                                 <!-- Nhân viên -->
                                 <td class="px-5 py-3.5">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                                        <div
+                                            class="w-8 h-8 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                                             {{ u.name.charAt(0).toUpperCase() }}
                                         </div>
                                         <div>
                                             <span class="font-bold text-slate-900 block">{{ u.name }}</span>
-                                            <p class="text-[10px] text-slate-400 font-mono">ID: #{{ u.id.toString().padStart(3, '0') }}</p>
+                                            <p class="text-[10px] text-slate-400 font-mono">ID: #{{
+                                                u.id.toString().padStart(3, '0') }}</p>
                                         </div>
                                     </div>
                                 </td>
@@ -127,7 +134,8 @@ const roleBadge = (r) => {
                                 <!-- Email / Phone -->
                                 <td class="px-5 py-3.5 text-slate-600">
                                     <p class="font-medium text-slate-900">{{ u.email }}</p>
-                                    <p class="text-[11px] text-slate-400 tabular-nums">{{ u.phone ?? 'Chưa cập nhật SĐT' }}</p>
+                                    <p class="text-[11px] text-slate-400 tabular-nums">{{ u.phone ?? 'Chưa cập nhật SĐT'
+                                        }}</p>
                                 </td>
 
                                 <!-- Vai trò -->
@@ -145,7 +153,8 @@ const roleBadge = (r) => {
                                         class="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-0.5 rounded-full font-semibold transition-colors cursor-pointer"
                                         :class="u.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'"
                                         :title="u.is_active ? 'Bấm để khóa tài khoản' : 'Bấm để kích hoạt tài khoản'">
-                                        <span class="w-1.5 h-1.5 rounded-full" :class="u.is_active ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+                                        <span class="w-1.5 h-1.5 rounded-full"
+                                            :class="u.is_active ? 'bg-emerald-500' : 'bg-rose-500'"></span>
                                         <span>{{ u.is_active ? 'Hoạt động' : 'Đã khóa' }}</span>
                                     </button>
                                 </td>
@@ -179,17 +188,17 @@ const roleBadge = (r) => {
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="users.last_page > 1" class="px-5 py-3 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between text-xs text-slate-500 shrink-0">
-                    <p>Trang <span class="font-bold text-slate-800">{{ users.current_page }}</span> / {{ users.last_page }}</p>
+                <div v-if="users.last_page > 1"
+                    class="px-5 py-3 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between text-xs text-slate-500 shrink-0">
+                    <p>Trang <span class="font-bold text-slate-800">{{ users.current_page }}</span> / {{ users.last_page
+                        }}</p>
                     <div class="flex gap-1.5">
-                        <Link v-if="users.prev_page_url" :href="users.prev_page_url"
-                            preserve-scroll preserve-state
+                        <Link v-if="users.prev_page_url" :href="users.prev_page_url" preserve-scroll preserve-state
                             class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-white text-slate-700 font-medium transition-colors">
                             <Icon name="chevron-left" size="14" />
                             <span>Trước</span>
                         </Link>
-                        <Link v-if="users.next_page_url" :href="users.next_page_url"
-                            preserve-scroll preserve-state
+                        <Link v-if="users.next_page_url" :href="users.next_page_url" preserve-scroll preserve-state
                             class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-white text-slate-700 font-medium transition-colors">
                             <span>Sau</span>
                             <Icon name="chevron-right" size="14" />

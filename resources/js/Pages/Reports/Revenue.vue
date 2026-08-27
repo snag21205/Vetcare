@@ -93,7 +93,7 @@ function renderCharts() {
                         grid: { color: '#f1f5f9' },
                         ticks: {
                             font: { size: 10 },
-                            callback: (v) => v >= 1000000 ? `${v/1000000}M` : `${v/1000}k`
+                            callback: (v) => v >= 1000000 ? `${v / 1000000}M` : `${v / 1000}k`
                         }
                     }
                 }
@@ -108,8 +108,8 @@ function renderCharts() {
         const medicineRev = Number(props.summary.total_medicine || 0)
         const total = examRev + serviceRev + medicineRev
 
-        const chartData = total > 0 
-            ? [examRev, serviceRev, medicineRev] 
+        const chartData = total > 0
+            ? [examRev, serviceRev, medicineRev]
             : [1, 1, 1] // placeholder if all 0
 
         breakdownChartInstance = new Chart(breakdownChartCanvas.value, {
@@ -161,6 +161,7 @@ watch(() => [props.dailyData, props.summary], () => {
 </script>
 
 <template>
+
     <Head title="Báo cáo Doanh thu" />
 
     <AuthenticatedLayout>
@@ -169,9 +170,10 @@ watch(() => [props.dailyData, props.summary], () => {
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 class="text-xl font-bold text-slate-900 tracking-tight">Báo cáo Doanh thu & Chi phí</h1>
-                    <p class="text-xs text-slate-500 mt-0.5">Phân tích hiệu quả tài chính, cơ cấu nguồn thu và đóng góp của bác sĩ</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Phân tích hiệu quả tài chính, cơ cấu nguồn thu và đóng góp
+                        của bác sĩ</p>
                 </div>
-                
+
                 <div class="flex items-center gap-2">
                     <!-- Nút xuất Excel -->
                     <a :href="route('reports.revenue.excel', { month: selectedMonth })"
@@ -183,7 +185,8 @@ watch(() => [props.dailyData, props.summary], () => {
             </div>
 
             <!-- Filter bar -->
-            <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs flex flex-wrap items-center gap-3 text-xs">
+            <div
+                class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs flex flex-wrap items-center gap-3 text-xs">
                 <div class="flex items-center gap-2">
                     <span class="font-semibold text-slate-600">Tháng:</span>
                     <input v-model="selectedMonth" type="month"
@@ -193,8 +196,8 @@ watch(() => [props.dailyData, props.summary], () => {
                 <div class="flex items-center gap-2">
                     <span class="font-semibold text-slate-600">Bác sĩ:</span>
                     <select v-model="selectedDoctor"
-                        class="border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white font-medium">
-                        <option value="">-- Tất cả bác sĩ --</option>
+                        class="border border-slate-200 rounded-xl pr-9px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white font-medium">
+                        <option value=""> Tất cả bác sĩ </option>
                         <option v-for="doc in doctors" :key="doc.id" :value="doc.id">
                             BS. {{ doc.name }}
                         </option>
@@ -204,9 +207,12 @@ watch(() => [props.dailyData, props.summary], () => {
 
             <!-- Stat Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                <StatCard title="Tổng Doanh thu" :value="summary.total_revenue" icon="chart" color="sky" format="currency" />
-                <StatCard title="Tổng Chi phí" :value="summary.total_expense" icon="document" color="red" format="currency" />
-                <StatCard title="Lợi nhuận Thuần" :value="summary.net_profit" icon="check" :color="summary.net_profit >= 0 ? 'green' : 'red'" format="currency" />
+                <StatCard title="Tổng Doanh thu" :value="summary.total_revenue" icon="chart" color="sky"
+                    format="currency" />
+                <StatCard title="Tổng Chi phí" :value="summary.total_expense" icon="document" color="red"
+                    format="currency" />
+                <StatCard title="Lợi nhuận Thuần" :value="summary.net_profit" icon="check"
+                    :color="summary.net_profit >= 0 ? 'green' : 'red'" format="currency" />
                 <StatCard title="Hóa đơn thanh toán" :value="summary.invoice_count" icon="invoice" color="blue" />
             </div>
 
@@ -246,7 +252,8 @@ watch(() => [props.dailyData, props.summary], () => {
                     </h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs text-left">
-                            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+                            <thead
+                                class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
                                 <tr>
                                     <th class="px-4 py-2.5 font-semibold">Bác sĩ</th>
                                     <th class="px-4 py-2.5 font-semibold text-center">Số ca khám</th>
@@ -272,34 +279,43 @@ watch(() => [props.dailyData, props.summary], () => {
                         Cơ cấu Chi phí tháng {{ selectedMonth }}
                     </h3>
                     <div class="space-y-3 text-xs">
-                        <div class="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-100">
+                        <div
+                            class="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-100">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
                                     <Icon name="pill" size="15" />
                                 </div>
                                 <span class="font-semibold text-emerald-900">Chi nhập kho thuốc & vật tư</span>
                             </div>
-                            <span class="tabular-nums font-bold text-emerald-800">{{ formatCurrency(summary.expense_import) }}</span>
+                            <span class="tabular-nums font-bold text-emerald-800">{{
+                                formatCurrency(summary.expense_import) }}</span>
                         </div>
 
-                        <div class="flex items-center justify-between p-3.5 rounded-xl bg-sky-50/60 border border-sky-100">
+                        <div
+                            class="flex items-center justify-between p-3.5 rounded-xl bg-sky-50/60 border border-sky-100">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold">
                                     <Icon name="chart" size="15" />
                                 </div>
                                 <span class="font-semibold text-sky-900">Chi phí vận hành (Điện, nước, mặt bằng)</span>
                             </div>
-                            <span class="tabular-nums font-bold text-sky-800">{{ formatCurrency(summary.expense_ops) }}</span>
+                            <span class="tabular-nums font-bold text-sky-800">{{ formatCurrency(summary.expense_ops)
+                            }}</span>
                         </div>
 
-                        <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <div
+                            class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-bold">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-bold">
                                     <Icon name="document" size="15" />
                                 </div>
                                 <span class="font-semibold text-slate-900">Chi phí khác</span>
                             </div>
-                            <span class="tabular-nums font-bold text-slate-800">{{ formatCurrency(summary.expense_other) }}</span>
+                            <span class="tabular-nums font-bold text-slate-800">{{ formatCurrency(summary.expense_other)
+                            }}</span>
                         </div>
                     </div>
                 </div>

@@ -54,16 +54,17 @@ function cancelAppointment(id) {
 }
 
 const statusConfig = {
-    pending:    { label: 'Chờ xác nhận', class: 'bg-amber-50 text-amber-700 border-amber-200' },
-    confirmed:  { label: 'Đã xác nhận', class: 'bg-sky-50 text-sky-700 border-sky-200' },
+    pending: { label: 'Chờ xác nhận', class: 'bg-amber-50 text-amber-700 border-amber-200' },
+    confirmed: { label: 'Đã xác nhận', class: 'bg-sky-50 text-sky-700 border-sky-200' },
     checked_in: { label: 'Đã check-in', class: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-    completed:  { label: 'Hoàn thành',  class: 'bg-slate-100 text-slate-600 border-slate-200' },
-    cancelled:  { label: 'Đã hủy',      class: 'bg-rose-50 text-rose-700 border-rose-200' },
-    no_show:    { label: 'Không đến',   class: 'bg-orange-50 text-orange-700 border-orange-200' },
+    completed: { label: 'Hoàn thành', class: 'bg-slate-100 text-slate-600 border-slate-200' },
+    cancelled: { label: 'Đã hủy', class: 'bg-rose-50 text-rose-700 border-rose-200' },
+    no_show: { label: 'Không đến', class: 'bg-orange-50 text-orange-700 border-orange-200' },
 }
 </script>
 
 <template>
+
     <Head title="Lịch hẹn" />
 
     <AuthenticatedLayout>
@@ -82,10 +83,12 @@ const statusConfig = {
             </div>
 
             <!-- Filter Bar -->
-            <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs text-xs">
+            <div
+                class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-xs text-xs">
                 <div class="flex flex-wrap items-center gap-2.5">
                     <!-- Điều hướng ngày -->
-                    <div class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50/60 shadow-2xs">
+                    <div
+                        class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50/60 shadow-2xs">
                         <button @click="changeDay(-1)"
                             class="px-2.5 py-2 hover:bg-slate-100 text-slate-600 border-r border-slate-200 transition-colors cursor-pointer"
                             title="Hôm trước">
@@ -109,7 +112,7 @@ const statusConfig = {
 
                     <!-- Lọc trạng thái -->
                     <select v-model="status"
-                        class="border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white font-medium">
+                        class="border border-slate-200 rounded-xl pr-9 px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white font-medium">
                         <option value="">Tất cả trạng thái</option>
                         <option v-for="(label, key) in statuses" :key="key" :value="key">
                             {{ label }}
@@ -130,7 +133,8 @@ const statusConfig = {
                     class="bg-white rounded-2xl border border-slate-200 shadow-xs p-12 text-center text-slate-400">
                     <Icon name="calendar" size="40" class="mx-auto text-slate-300 mb-2" />
                     <p class="text-xs font-semibold text-slate-600">Không có lịch hẹn nào trong ngày đã chọn</p>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Chọn ngày khác hoặc tạo lịch hẹn mới cho khách hàng.</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Chọn ngày khác hoặc tạo lịch hẹn mới cho khách hàng.
+                    </p>
                 </div>
 
                 <!-- Card từng lịch hẹn -->
@@ -139,9 +143,13 @@ const statusConfig = {
 
                     <div class="flex items-start gap-4">
                         <!-- Giờ hẹn -->
-                        <div class="w-16 h-14 rounded-xl bg-sky-50/60 border border-sky-100 flex flex-col items-center justify-center shrink-0">
+                        <div
+                            class="w-16 h-14 rounded-xl bg-sky-50/60 border border-sky-100 flex flex-col items-center justify-center shrink-0">
                             <span class="text-sm font-bold text-sky-700 tabular-nums">
-                                {{ new Date(apt.scheduled_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) }}
+                                {{ new Date(apt.scheduled_at).toLocaleTimeString('vi-VN', {
+                                    hour: '2-digit', minute:
+                                        '2-digit'
+                                }) }}
                             </span>
                             <span class="text-[10px] text-slate-400 font-medium">Giờ hẹn</span>
                         </div>
@@ -153,7 +161,8 @@ const statusConfig = {
                                 <span class="text-xs text-slate-500 font-normal">({{ apt.pet?.species }})</span>
                                 <span class="text-xs text-slate-300">·</span>
                                 <span class="text-xs text-slate-700 font-semibold">{{ apt.pet?.customer?.name }}</span>
-                                <span class="text-xs text-slate-400 tabular-nums">({{ apt.pet?.customer?.phone }})</span>
+                                <span class="text-xs text-slate-400 tabular-nums">({{ apt.pet?.customer?.phone
+                                }})</span>
                             </div>
                             <p class="text-xs text-slate-600">{{ apt.reason }}</p>
                             <p v-if="apt.doctor" class="text-[11px] text-sky-700 font-semibold flex items-center gap-1">
@@ -164,7 +173,8 @@ const statusConfig = {
                     </div>
 
                     <!-- Trạng thái & Action Buttons -->
-                    <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                    <div
+                        class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                         <!-- Badges -->
                         <div class="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
                             <span :class="statusConfig[apt.status]?.class"
@@ -208,7 +218,8 @@ const statusConfig = {
                                     <Icon name="document" size="13" />
                                     <span>Bệnh án</span>
                                 </Link>
-                                <Link v-if="apt.medical_record.invoice" :href="route('invoices.show', apt.medical_record.invoice.id)"
+                                <Link v-if="apt.medical_record.invoice"
+                                    :href="route('invoices.show', apt.medical_record.invoice.id)"
                                     class="inline-flex items-center gap-1 text-[11px] bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-2.5 py-1.5 rounded-xl font-semibold transition-colors">
                                     <Icon name="invoice" size="13" />
                                     <span>Hóa đơn</span>
