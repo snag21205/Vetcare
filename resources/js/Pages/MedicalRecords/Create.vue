@@ -1,5 +1,4 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Icon from '@/Components/Icon.vue'
 import AiDiagnosisModal from '@/Components/AiDiagnosisModal.vue'
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
@@ -232,7 +231,6 @@ function submit() {
 <template>
     <Head title="Lập phiếu khám bệnh" />
 
-    <AuthenticatedLayout>
         <div class="space-y-4 pb-12">
             <!-- Breadcrumb -->
             <nav class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
@@ -638,5 +636,4 @@ function submit() {
             :temperature="form.temperature_at_visit"
             @close="showAiModal = false"
             @apply="handleApplyAi" />
-    </AuthenticatedLayout>
 </template>

@@ -1,5 +1,4 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Icon from '@/Components/Icon.vue'
 import { Head, Link } from '@inertiajs/vue3'
 
@@ -41,7 +40,6 @@ function printRecord() {
 <template>
     <Head :title="`Phiếu khám #KB-${record.id}`" />
 
-    <AuthenticatedLayout>
         <div class="max-w-4xl mx-auto space-y-4 pb-12">
             <!-- Breadcrumb -->
             <nav class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
@@ -245,5 +243,4 @@ function printRecord() {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
 </template>

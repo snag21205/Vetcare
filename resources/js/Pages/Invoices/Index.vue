@@ -1,5 +1,4 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import StatCard from '@/Components/StatCard.vue'
 import Icon from '@/Components/Icon.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
@@ -66,7 +65,6 @@ const formatDate = (dateStr) => {
 
     <Head title="Hóa đơn" />
 
-    <AuthenticatedLayout>
         <div class="space-y-4">
             <!-- Page Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -215,5 +213,4 @@ const formatDate = (dateStr) => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
 </template>

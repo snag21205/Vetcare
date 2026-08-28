@@ -1,8 +1,7 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Icon from '@/Components/Icon.vue'
 import { Head, router } from '@inertiajs/vue3'
-import { ref, watch, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import Chart from 'chart.js/auto'
 
 const props = defineProps({
@@ -29,7 +28,10 @@ const chartCanvas = ref(null)
 let chartInstance = null
 
 function renderChart() {
-    if (chartInstance) chartInstance.destroy()
+    if (chartInstance) {
+        chartInstance.destroy()
+        chartInstance = null
+    }
     if (!chartCanvas.value || props.diseases.length === 0) return
 
     // Top 7 common diseases
@@ -42,7 +44,7 @@ function renderChart() {
         data: {
             labels,
             datasets: [{
-                data: counts,
+                data: labels.map(() => 0),
                 backgroundColor: [
                     '#0284c7', '#06b6d4', '#10b981', '#f59e0b',
                     '#ec4899', '#8b5cf6', '#64748b'
@@ -54,6 +56,12 @@ function renderChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 1100,
+                easing: 'easeOutQuart',
+            },
             plugins: {
                 legend: {
                     position: 'right',
@@ -68,14 +76,32 @@ function renderChart() {
             cutout: '65%',
         }
     })
+
+    setTimeout(() => {
+        if (chartInstance) {
+            chartInstance.data.datasets[0].data = counts
+            chartInstance.update()
+        }
+    }, 40)
 }
 
 onMounted(() => {
-    nextTick(() => renderChart())
+    nextTick(() => {
+        renderChart()
+    })
+})
+
+onUnmounted(() => {
+    if (chartInstance) {
+        chartInstance.destroy()
+        chartInstance = null
+    }
 })
 
 watch(() => props.diseases, () => {
-    nextTick(() => renderChart())
+    nextTick(() => {
+        renderChart()
+    })
 }, { deep: true })
 </script>
 
@@ -83,7 +109,6 @@ watch(() => props.diseases, () => {
 
     <Head title="Báo cáo Bệnh phổ biến" />
 
-    <AuthenticatedLayout>
         <div class="space-y-4">
             <!-- Page Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -196,5 +221,4 @@ watch(() => props.diseases, () => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
 </template>

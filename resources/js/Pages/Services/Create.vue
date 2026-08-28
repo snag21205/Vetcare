@@ -1,5 +1,4 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Icon from '@/Components/Icon.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 
@@ -17,7 +16,6 @@ function submit() {
 <template>
     <Head title="Thêm dịch vụ mới" />
 
-    <AuthenticatedLayout>
         <div class="space-y-4 pb-12">
             <!-- Breadcrumb -->
             <nav class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
@@ -111,5 +109,4 @@ function submit() {
 
             </div>
         </div>
-    </AuthenticatedLayout>
 </template>

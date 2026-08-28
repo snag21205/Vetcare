@@ -1,10 +1,9 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import StatCard from '@/Components/StatCard.vue'
 import Icon from '@/Components/Icon.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { useAuth } from '@/Composables/useAuth.js'
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import Chart from 'chart.js/auto'
 
 const props = defineProps({
@@ -19,10 +18,7 @@ const props = defineProps({
     revenue7Days: Array,
 })
 
-const { isAdmin, isReceptionist, isVet, isAccountant, user } = useAuth()
-
-const adminChartCanvas = ref(null)
-let adminChartInstance = null
+const { isAdmin, isVet, isReceptionist, isAccountant, user } = useAuth()
 
 const statusBadgeClass = (status) => {
     const classes = {
@@ -82,54 +78,92 @@ function confirmAppointment(id) {
     router.post(route('appointments.confirm', id), {}, { preserveScroll: true })
 }
 
-onMounted(() => {
-    if (isAdmin.value && adminChartCanvas.value && props.revenue7Days?.length > 0) {
-        nextTick(() => {
-            adminChartInstance = new Chart(adminChartCanvas.value, {
-                type: 'bar',
-                data: {
-                    labels: props.revenue7Days.map(d => d.date),
-                    datasets: [{
-                        label: 'Doanh thu (VNĐ)',
-                        data: props.revenue7Days.map(d => d.value),
-                        backgroundColor: '#0284c7',
-                        borderRadius: 6,
-                        barThickness: 24,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => `Doanh thu: ${formatCurrency(ctx.raw)}`
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#f1f5f9' },
-                            ticks: {
-                                callback: (v) => v >= 1000000 ? `${v / 1000000}M` : `${v / 1000}k`
-                            }
-                        }
+const adminChartCanvas = ref(null)
+let adminChartInstance = null
+
+function renderAdminChart() {
+    if (!isAdmin.value || !props.revenue7Days?.length) return
+    if (adminChartInstance) {
+        adminChartInstance.destroy()
+        adminChartInstance = null
+    }
+    if (!adminChartCanvas.value) return
+
+    const labels = props.revenue7Days.map(d => d.date)
+    const values = props.revenue7Days.map(d => d.value)
+
+    adminChartInstance = new Chart(adminChartCanvas.value, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Doanh thu (VNĐ)',
+                data: labels.map(() => 0),
+                backgroundColor: '#0284c7',
+                borderRadius: 6,
+                barThickness: 24,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 900,
+                easing: 'easeOutQuart',
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `Doanh thu: ${formatCurrency(ctx.raw)}`
                     }
                 }
-            })
-        })
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f1f5f9' },
+                    ticks: {
+                        callback: (v) => v >= 1000000 ? `${v / 1000000}M` : `${v / 1000}k`
+                    }
+                }
+            }
+        }
+    })
+
+    setTimeout(() => {
+        if (adminChartInstance) {
+            adminChartInstance.data.datasets[0].data = values
+            adminChartInstance.update()
+        }
+    }, 40)
+}
+
+onMounted(() => {
+    nextTick(() => {
+        renderAdminChart()
+    })
+})
+
+onUnmounted(() => {
+    if (adminChartInstance) {
+        adminChartInstance.destroy()
+        adminChartInstance = null
     }
 })
+
+watch(() => props.revenue7Days, () => {
+    nextTick(() => {
+        renderAdminChart()
+    })
+}, { deep: true })
 </script>
 
 <template>
 
     <Head title="Tổng quan" />
 
-    <AuthenticatedLayout>
         <div class="space-y-6 pb-12">
 
             <!-- Header Tổng quan & Chào mừng -->
@@ -783,5 +817,4 @@ onMounted(() => {
             </template>
 
         </div>
-    </AuthenticatedLayout>
 </template>

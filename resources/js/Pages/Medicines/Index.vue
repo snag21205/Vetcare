@@ -1,5 +1,4 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import StatCard from '@/Components/StatCard.vue'
 import Icon from '@/Components/Icon.vue'
 import { Head, Link, useForm, router } from '@inertiajs/vue3'
@@ -105,7 +104,6 @@ const isExpiringSoon = (dateStr) => {
 <template>
     <Head title="Kho thuốc & Vật tư" />
 
-    <AuthenticatedLayout>
         <div class="space-y-4">
             <!-- Page Header (Cố định ở đầu) -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -458,5 +456,4 @@ const isExpiringSoon = (dateStr) => {
             </div>
         </div>
 
-    </AuthenticatedLayout>
 </template>

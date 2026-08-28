@@ -1,5 +1,4 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Icon from '@/Components/Icon.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 
@@ -22,7 +21,6 @@ const genderLabel = (g) => ({ male: 'Đực', female: 'Cái', unknown: 'Chưa r�
 <template>
     <Head title="Vật nuôi" />
 
-    <AuthenticatedLayout>
         <div class="space-y-4">
             <!-- Page Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -123,5 +121,4 @@ const genderLabel = (g) => ({ male: 'Đực', female: 'Cái', unknown: 'Chưa r�
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
 </template>

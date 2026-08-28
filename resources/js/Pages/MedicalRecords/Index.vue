@@ -1,5 +1,4 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Icon from '@/Components/Icon.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, watch } from 'vue'
@@ -46,7 +45,6 @@ const formatDate = (dateStr) => {
 <template>
     <Head title="Hồ sơ khám bệnh" />
 
-    <AuthenticatedLayout>
         <div class="space-y-4">
             <!-- Page Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -173,5 +171,4 @@ const formatDate = (dateStr) => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
 </template>

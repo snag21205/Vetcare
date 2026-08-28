@@ -1,5 +1,4 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Icon from '@/Components/Icon.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, watch } from 'vue'
@@ -63,7 +62,6 @@ const roleBadge = (r) => {
 
     <Head title="Quản lý Nhân viên" />
 
-    <AuthenticatedLayout>
         <div class="space-y-4">
             <!-- Page Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -207,5 +205,4 @@ const roleBadge = (r) => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
 </template>

@@ -1,8 +1,8 @@
 <script setup>
 import { useAuth } from '@/Composables/useAuth'
 import Icon from '@/Components/Icon.vue'
-import { Link } from '@inertiajs/vue3'
-import { ref, onMounted, nextTick } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 
 const props = defineProps({
     mobileOpen: {
@@ -14,12 +14,101 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const { isAdmin, isVet, isReceptionist, isAccountant } = useAuth()
+const page = usePage()
 
 const navRef = ref(null)
+
+// Sliding active indicator state
+const indicator = ref({
+    top: 0,
+    height: 38,
+    visible: false,
+    expanded: true,
+})
+
+let timer1 = null
+let timer2 = null
+let isAnimating = false  // cờ ngăn syncIndicator chạy đè lên animation đang chạy
 
 function handleScroll(e) {
     if (e.target) {
         sessionStorage.setItem('sidebar_scroll_pos', e.target.scrollTop)
+    }
+}
+
+function isActive(path) {
+    if (path === '/dashboard') {
+        return page.url === '/dashboard'
+    }
+    return page.url.startsWith(path)
+}
+
+/**
+ * Di chuyển indicator tới element đã cho.
+ * - immediate=true: nhảy thẳng không animation (lần đầu mount)
+ * - immediate=false: chạy animation 3 giai đoạn
+ */
+function moveTo(el, immediate = false) {
+    if (!el || !navRef.value) return
+
+    const top = el.offsetTop
+    const height = el.offsetHeight
+
+    clearTimeout(timer1)
+    clearTimeout(timer2)
+    isAnimating = false
+
+    if (immediate || !indicator.value.visible) {
+        // Nhảy thẳng, không animation
+        indicator.value = { top, height, visible: true, expanded: true }
+        return
+    }
+
+    if (indicator.value.top === top && indicator.value.expanded) {
+        // Đã đúng vị trí và đang hiển thị rồi, không cần làm gì
+        return
+    }
+
+    // ─── Bắt đầu animation 3 giai đoạn ──────────────────────────
+    isAnimating = true
+
+    // Giai đoạn 1 (0→120ms): Kéo gọn phần nền xanh nhạt vào dải xanh đậm
+    indicator.value.expanded = false
+
+    // Giai đoạn 2 (120→360ms): Dải xanh đậm trượt dọc đến vị trí mới
+    timer1 = setTimeout(() => {
+        indicator.value.top = top
+        indicator.value.height = height
+
+        // Giai đoạn 3 (360→580ms): Nền xanh nhạt bung rộng ra từ dải xanh đậm
+        timer2 = setTimeout(() => {
+            indicator.value.expanded = true
+            isAnimating = false
+        }, 220)
+    }, 120)
+}
+
+function syncIndicator() {
+    // Nếu đang chạy animation do click, bỏ qua để tránh chạy đè
+    if (isAnimating) return
+
+    nextTick(() => {
+        if (!navRef.value) return
+        const active = navRef.value.querySelector('.sidebar-link-active')
+        if (active) {
+            moveTo(active, false)
+        } else {
+            indicator.value.visible = false
+        }
+    })
+}
+
+// Khi nhấn một liên kết: animation bắt đầu ngay từ nút được click
+function handleLinkClick(e) {
+    emit('close')
+    const linkEl = e.currentTarget
+    if (linkEl) {
+        moveTo(linkEl, false)
     }
 }
 
@@ -29,7 +118,22 @@ onMounted(() => {
         if (savedPos && navRef.value) {
             navRef.value.scrollTop = Number(savedPos)
         }
+        // Lần đầu: nhảy thẳng, không animate
+        const active = navRef.value?.querySelector('.sidebar-link-active')
+        if (active) moveTo(active, true)
     })
+})
+
+onUnmounted(() => {
+    clearTimeout(timer1)
+    clearTimeout(timer2)
+})
+
+// Khi Inertia chuyển trang xong, URL thay đổi.
+// Với persistent layout, Sidebar KHÔNG bị remount.
+// watch này chỉ dùng để đồng bộ nếu animation bị lỡ (vd: back/forward browser)
+watch(() => page.url, () => {
+    syncIndicator()
 })
 </script>
 
@@ -47,7 +151,7 @@ onMounted(() => {
             mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
         ]">
 
-        <!-- Fixed Header / Brand (Không bị cuộn theo menu) -->
+        <!-- Fixed Header / Brand -->
         <div class="h-16 shrink-0 px-5 flex items-center justify-between border-b border-slate-100 bg-white">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-sky-600 flex items-center justify-center text-white shadow-xs">
@@ -58,162 +162,164 @@ onMounted(() => {
                     <p class="text-[10px] text-sky-600 font-bold uppercase tracking-wider">Clinic OS</p>
                 </div>
             </div>
-
-            <!-- Mobile Close Button -->
             <button @click="emit('close')"
-                class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
                 <Icon name="x" size="18" />
             </button>
         </div>
 
-        <!-- Navigation Menu (Chỉ vùng này cuộn độc lập & giữ nguyên vị trí cuộn) -->
-        <nav ref="navRef" @scroll="handleScroll" class="flex-1 px-3 py-4 space-y-5 overflow-y-auto text-xs custom-scrollbar">
+        <!-- Navigation Menu -->
+        <nav ref="navRef" @scroll="handleScroll" class="relative flex-1 px-3 py-4 space-y-5 overflow-y-auto text-xs custom-scrollbar">
+
+            <!-- Dynamic Sliding Active Indicator -->
+            <div
+                v-show="indicator.visible"
+                class="absolute pointer-events-none z-0 flex items-stretch"
+                :style="{
+                    top: `${indicator.top}px`,
+                    height: `${indicator.height}px`,
+                    width: 'calc(100% - 1.5rem)',
+                    left: '0.75rem',
+                    transition: 'top 240ms cubic-bezier(0.34, 1.2, 0.64, 1), height 240ms cubic-bezier(0.34, 1.2, 0.64, 1)'
+                }">
+                <!-- Dải xanh đậm bên trái (Trượt dọc) -->
+                <div class="w-1.5 bg-sky-600 rounded-r-md shrink-0 shadow-xs"></div>
+                <!-- Nền xanh nhạt (Kéo vào / Mở rộng ra) -->
+                <div
+                    class="flex-1 bg-sky-50 border border-l-0 border-sky-200/90 rounded-r-xl origin-left"
+                    :style="{
+                        transform: indicator.expanded ? 'scaleX(1)' : 'scaleX(0)',
+                        opacity: indicator.expanded ? '1' : '0',
+                        transition: indicator.expanded
+                            ? 'transform 220ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease'
+                            : 'transform 100ms cubic-bezier(0.4, 0, 1, 1), opacity 100ms ease'
+                    }">
+                </div>
+            </div>
 
             <!-- Core -->
             <div class="space-y-1">
                 <Link :href="route('dashboard')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url === '/dashboard' }">
-                    <Icon name="dashboard" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/dashboard') }">
+                    <Icon name="dashboard" size="16" />
                     <span>Tổng quan</span>
                 </Link>
             </div>
 
-            <!-- Tiếp đón: Receptionist & Admin -->
+            <!-- Tiếp đón -->
             <div v-if="isReceptionist || isAdmin" class="space-y-1">
-                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Tiếp đón
-                </div>
-
+                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tiếp đón</div>
                 <Link :href="route('customers.index')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/customers') }">
-                    <Icon name="users" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/customers') }">
+                    <Icon name="users" size="16" />
                     <span>Khách hàng</span>
                 </Link>
-
                 <Link :href="route('pets.index')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/pets') }">
-                    <Icon name="pet" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/pets') }">
+                    <Icon name="pet" size="16" />
                     <span>Vật nuôi</span>
                 </Link>
-
                 <Link :href="route('appointments.index')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/appointments') }">
-                    <Icon name="calendar" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/appointments') }">
+                    <Icon name="calendar" size="16" />
                     <span>Lịch hẹn khám</span>
                 </Link>
             </div>
 
-            <!-- Khám chữa bệnh: Vet & Admin -->
+            <!-- Khám chữa bệnh -->
             <div v-if="isVet || isAdmin" class="space-y-1">
-                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Khám chữa bệnh
-                </div>
-
+                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Khám chữa bệnh</div>
                 <Link :href="route('medical-records.index')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/medical-records') }">
-                    <Icon name="stethoscope" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/medical-records') }">
+                    <Icon name="stethoscope" size="16" />
                     <span>Hồ sơ khám bệnh</span>
                 </Link>
             </div>
 
-            <!-- Tài chính & Thu ngân -->
+            <!-- Tài chính -->
             <div v-if="isAccountant || isReceptionist || isAdmin" class="space-y-1">
-                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Tài chính & Thu ngân
-                </div>
-
+                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tài chính & Thu ngân</div>
                 <Link :href="route('invoices.index')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/invoices') }">
-                    <Icon name="invoice" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/invoices') }">
+                    <Icon name="invoice" size="16" />
                     <span>Hóa đơn thu tiền</span>
                 </Link>
-
                 <Link v-if="isAccountant || isAdmin" :href="route('expense-vouchers.index')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/expense-vouchers') }">
-                    <Icon name="document" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/expense-vouchers') }">
+                    <Icon name="document" size="16" />
                     <span>Phiếu chi sổ quỹ</span>
                 </Link>
             </div>
 
-            <!-- Báo cáo & Thống kê -->
+            <!-- Báo cáo -->
             <div v-if="isAccountant || isAdmin" class="space-y-1">
-                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Báo cáo & Thống kê
-                </div>
-
+                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Báo cáo & Thống kê</div>
                 <Link :href="route('reports.revenue')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/reports/revenue') }">
-                    <Icon name="chart" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/reports/revenue') }">
+                    <Icon name="chart" size="16" />
                     <span>Báo cáo doanh thu</span>
                 </Link>
-
                 <Link :href="route('reports.diseases')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/reports/diseases') }">
-                    <Icon name="stethoscope" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/reports/diseases') }">
+                    <Icon name="stethoscope" size="16" />
                     <span>Bệnh phổ biến</span>
                 </Link>
-
                 <Link :href="route('reports.loyal-customers')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/reports/loyal-customers') }">
-                    <Icon name="users" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/reports/loyal-customers') }">
+                    <Icon name="users" size="16" />
                     <span>Khách thân thiết</span>
                 </Link>
             </div>
 
-            <!-- Quản trị hệ thống (Admin) -->
+            <!-- Quản trị hệ thống -->
             <div v-if="isAdmin" class="space-y-1">
-                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Quản trị hệ thống
-                </div>
-
+                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Quản trị hệ thống</div>
                 <Link :href="route('medicines.index')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/medicines') }">
-                    <Icon name="medicine" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/medicines') }">
+                    <Icon name="medicine" size="16" />
                     <span>Kho thuốc & Vật tư</span>
                 </Link>
-
                 <Link :href="route('services.index')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/services') }">
-                    <Icon name="service" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/services') }">
+                    <Icon name="service" size="16" />
                     <span>Bảng giá dịch vụ</span>
                 </Link>
-
                 <Link :href="route('users.index')"
-                    @click="emit('close')"
+                    @click="handleLinkClick"
                     class="sidebar-link"
-                    :class="{ 'sidebar-link-active': $page.url.startsWith('/users') }">
-                    <Icon name="user" size="16" class="transition-transform duration-200 group-hover:scale-110" />
+                    :class="{ 'sidebar-link-active': isActive('/users') }">
+                    <Icon name="user" size="16" />
                     <span>Tài khoản nhân viên</span>
                 </Link>
             </div>
 
         </nav>
 
-        <!-- Compact Bottom Clinic Status (Fixed) -->
+        <!-- Compact Bottom Status -->
         <div class="p-3 border-t border-slate-100 bg-slate-50/70 shrink-0">
             <div class="flex items-center gap-2 px-2 py-1 text-[11px] text-slate-500 font-medium">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
@@ -226,12 +332,21 @@ onMounted(() => {
 
 <style scoped>
 .sidebar-link {
-    @apply relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-sky-700 hover:bg-sky-50/80 transition-all duration-200 font-medium overflow-hidden;
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.75rem;
+    color: #475569;
+    font-weight: 500;
+    transition: color 0.15s ease;
 }
-.sidebar-link:hover :deep(svg) {
-    transform: scale(1.1);
-}
+.sidebar-link:hover { color: #0284c7; }
 .sidebar-link-active {
-    @apply bg-sky-50 text-sky-700 font-bold border-l-4 border-sky-600 rounded-r-xl rounded-l-none pl-3 shadow-xs;
+    color: #0369a1 !important;
+    font-weight: 700 !important;
 }
+.sidebar-link-active :deep(svg) { color: #0284c7 !important; }
 </style>

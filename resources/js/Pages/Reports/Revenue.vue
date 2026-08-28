@@ -1,9 +1,8 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Icon from '@/Components/Icon.vue'
 import StatCard from '@/Components/StatCard.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
-import { ref, watch, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import Chart from 'chart.js/auto'
 
 const props = defineProps({
@@ -41,8 +40,14 @@ let dailyChartInstance = null
 let breakdownChartInstance = null
 
 function renderCharts() {
-    if (dailyChartInstance) dailyChartInstance.destroy()
-    if (breakdownChartInstance) breakdownChartInstance.destroy()
+    if (dailyChartInstance) {
+        dailyChartInstance.destroy()
+        dailyChartInstance = null
+    }
+    if (breakdownChartInstance) {
+        breakdownChartInstance.destroy()
+        breakdownChartInstance = null
+    }
 
     // 1. Daily Chart (Line / Bar)
     if (dailyChartCanvas.value) {
@@ -57,7 +62,7 @@ function renderCharts() {
                 datasets: [
                     {
                         label: 'Doanh thu (VNĐ)',
-                        data: revenues,
+                        data: labels.map(() => 0),
                         backgroundColor: 'rgba(2, 132, 199, 0.85)',
                         borderColor: '#0284c7',
                         borderWidth: 1,
@@ -65,7 +70,7 @@ function renderCharts() {
                     },
                     {
                         label: 'Chi phí (VNĐ)',
-                        data: expenses,
+                        data: labels.map(() => 0),
                         backgroundColor: 'rgba(244, 63, 94, 0.75)',
                         borderColor: '#e11d48',
                         borderWidth: 1,
@@ -76,6 +81,10 @@ function renderCharts() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart',
+                },
                 plugins: {
                     legend: {
                         position: 'top',
@@ -99,6 +108,14 @@ function renderCharts() {
                 }
             }
         })
+
+        setTimeout(() => {
+            if (dailyChartInstance) {
+                dailyChartInstance.data.datasets[0].data = revenues
+                dailyChartInstance.data.datasets[1].data = expenses
+                dailyChartInstance.update()
+            }
+        }, 40)
     }
 
     // 2. Breakdown Chart (Doughnut)
@@ -108,16 +125,12 @@ function renderCharts() {
         const medicineRev = Number(props.summary.total_medicine || 0)
         const total = examRev + serviceRev + medicineRev
 
-        const chartData = total > 0
-            ? [examRev, serviceRev, medicineRev]
-            : [1, 1, 1] // placeholder if all 0
-
         breakdownChartInstance = new Chart(breakdownChartCanvas.value, {
             type: 'doughnut',
             data: {
                 labels: ['Phí khám & Tư vấn', 'Dịch vụ kỹ thuật', 'Thuốc & Vật tư'],
                 datasets: [{
-                    data: total > 0 ? [examRev, serviceRev, medicineRev] : [0, 0, 0],
+                    data: [0, 0, 0],
                     backgroundColor: [
                         '#0284c7', // Sky 600
                         '#6366f1', // Indigo 500
@@ -130,6 +143,12 @@ function renderCharts() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 1100,
+                    easing: 'easeOutQuart',
+                },
                 plugins: {
                     legend: {
                         position: 'bottom',
@@ -148,15 +167,37 @@ function renderCharts() {
                 cutout: '68%'
             }
         })
+
+        setTimeout(() => {
+            if (breakdownChartInstance) {
+                breakdownChartInstance.data.datasets[0].data = total > 0 ? [examRev, serviceRev, medicineRev] : [0, 0, 0]
+                breakdownChartInstance.update()
+            }
+        }, 40)
     }
 }
 
 onMounted(() => {
-    nextTick(() => renderCharts())
+    nextTick(() => {
+        renderCharts()
+    })
+})
+
+onUnmounted(() => {
+    if (dailyChartInstance) {
+        dailyChartInstance.destroy()
+        dailyChartInstance = null
+    }
+    if (breakdownChartInstance) {
+        breakdownChartInstance.destroy()
+        breakdownChartInstance = null
+    }
 })
 
 watch(() => [props.dailyData, props.summary], () => {
-    nextTick(() => renderCharts())
+    nextTick(() => {
+        renderCharts()
+    })
 }, { deep: true })
 </script>
 
@@ -164,7 +205,6 @@ watch(() => [props.dailyData, props.summary], () => {
 
     <Head title="Báo cáo Doanh thu" />
 
-    <AuthenticatedLayout>
         <div class="space-y-4">
             <!-- Page Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -321,5 +361,4 @@ watch(() => [props.dailyData, props.summary], () => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
 </template>
