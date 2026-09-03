@@ -9,8 +9,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
-// Các trang Auth không dùng AuthenticatedLayout
-const guestPages = ['Auth/Login', 'Auth/Register', 'Auth/ForgotPassword', 'Auth/ResetPassword', 'Auth/VerifyEmail', 'Auth/ConfirmPassword', 'Welcome'];
+// Các trang không dùng AuthenticatedLayout
+const guestPages = ['Auth/Login', 'Auth/Register', 'Auth/ForgotPassword', 'Auth/ResetPassword', 'Auth/VerifyEmail', 'Auth/ConfirmPassword', 'Welcome', 'Error'];
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,

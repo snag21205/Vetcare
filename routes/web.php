@@ -90,9 +90,16 @@ Route::middleware('auth')->group(function () {
     Route::match(['post', 'patch'], 'notifications/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead']);
     Route::match(['post', 'patch'], 'notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
         ->name('notifications.mark-all-read');
-    Route::match(['post', 'patch'], 'notifications/mark-all-as-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead']);
     Route::delete('notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])
         ->name('notifications.destroy');
 });
 
+// ===== ROUTE XEM TRƯỚC / TEST TRANG LỖI =====
+Route::get('/errors/{status?}', function ($status = 404) {
+    $validStatuses = [400, 401, 403, 404, 419, 500, 503];
+    $status = in_array((int)$status, $validStatuses) ? (int)$status : 404;
+    return \Inertia\Inertia::render('Error', ['status' => $status]);
+})->name('errors.preview');
+
 require __DIR__ . '/auth.php';
+
