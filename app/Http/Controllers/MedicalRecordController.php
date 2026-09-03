@@ -65,7 +65,7 @@ class MedicalRecordController extends Controller
         // Lấy danh sách thuốc còn tồn kho
         $medicines = Medicine::where('stock_quantity', '>', 0)
             ->orderBy('name')
-            ->get(['id', 'name', 'unit', 'stock_quantity', 'sell_price']);
+            ->get(['id', 'name', 'unit', 'stock_quantity', 'sell_price', 'expiry_date', 'low_stock_threshold']);
 
         // Lấy danh sách dịch vụ
         $services = Service::orderBy('name')

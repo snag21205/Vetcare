@@ -1,6 +1,7 @@
 <script setup>
 import Icon from '@/Components/Icon.vue'
 import AiDiagnosisModal from '@/Components/AiDiagnosisModal.vue'
+import MedicineSearchSelect from '@/Components/MedicineSearchSelect.vue'
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref, watch } from 'vue'
 
@@ -128,7 +129,7 @@ const totalServiceCost = computed(() => {
 const totalMedicineCost = computed(() => {
     return form.prescriptions.reduce((sum, item) => {
         if (!item.medicine_id || !item.quantity) return sum
-        const med = props.medicines.find(m => m.id === item.medicine_id)
+        const med = props.medicines.find(m => String(m.id) === String(item.medicine_id))
         const price = med ? Number(med.sell_price) : 0
         return sum + (price * Number(item.quantity))
     }, 0)
@@ -149,12 +150,30 @@ const formatDate = (dateStr) => {
     })
 }
 
+function getMedicine(id) {
+    if (!id) return null
+    return props.medicines.find(m => String(m.id) === String(id)) || null
+}
+
+function onSelectMedicine(prescriptionItem, medicine) {
+    prescriptionItem.medicine_id = medicine.id
+    if (!prescriptionItem.dosage) {
+        prescriptionItem.dosage = '1 viên/lần, ngày 2 lần'
+    }
+    if (!prescriptionItem.days) {
+        prescriptionItem.days = 5
+    }
+    if (!prescriptionItem.quantity || prescriptionItem.quantity <= 0) {
+        prescriptionItem.quantity = 5
+    }
+}
+
 function addPrescription() {
     form.prescriptions.push({
         medicine_id: '',
-        dosage: '',
-        quantity: 1,
-        days: null,
+        dosage: '1 viên/lần, ngày 2 lần',
+        quantity: 5,
+        days: 5,
         note: '',
     })
 }
@@ -471,62 +490,91 @@ function submit() {
                         </div>
 
                         <!-- Danh sách các dòng kê đơn thuốc -->
-                        <div class="space-y-3">
+                        <div class="space-y-3.5">
                             <div v-for="(p, index) in form.prescriptions" :key="index"
-                                class="p-3.5 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-3 relative">
+                                class="p-4 bg-slate-50/90 border border-slate-200/90 rounded-2xl space-y-3.5 relative shadow-2xs transition-all hover:border-slate-300">
                                 
-                                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-                                    <!-- Chọn thuốc -->
-                                    <div class="sm:col-span-5">
-                                        <label class="block font-semibold text-slate-700 mb-1">
-                                            Thuốc <span class="text-rose-500">*</span>
+                                <!-- HÀNG 1: CHỌN THUỐC (CHIẾM TRỌN 100% CHIỀU RỘNG - RỘNG RÃI & RÕ RÀNG TÊN THUỐC) -->
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center justify-between text-xs">
+                                        <label class="font-semibold text-slate-700 flex items-center gap-2">
+                                            <span class="w-5 h-5 rounded-md bg-sky-600 text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
+                                                {{ index + 1 }}
+                                            </span>
+                                            <span>Thuốc điều trị <span class="text-rose-500">*</span></span>
                                         </label>
-                                        <select v-model="p.medicine_id"
-                                            class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium">
-                                            <option value="">-- Chọn thuốc --</option>
-                                            <option v-for="med in medicines" :key="med.id" :value="med.id">
-                                                {{ med.name }} (Còn: {{ med.stock_quantity }} {{ med.unit }} - {{ formatCurrency(med.sell_price) }})
-                                            </option>
-                                        </select>
+                                        
+                                        <!-- Nút xóa dòng thuốc -->
+                                        <button type="button" @click="removePrescription(index)"
+                                            class="px-2 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer text-[11px] font-semibold flex items-center gap-1"
+                                            title="Xóa loại thuốc này">
+                                            <Icon name="trash" size="13" />
+                                            <span>Xóa thuốc</span>
+                                        </button>
                                     </div>
+                                    
+                                    <MedicineSearchSelect
+                                        v-model="p.medicine_id"
+                                        :medicines="medicines"
+                                        @select="med => onSelectMedicine(p, med)"
+                                        placeholder="Gõ tên thuốc để tìm nhanh trong kho (vd: Amox, Dexa, Bio-Rumi...)"
+                                    />
+                                </div>
 
+                                <!-- HÀNG 2: LIỀU LƯỢNG, SỐ NGÀY, SỐ LƯỢNG, THÀNH TIỀN DÒNG -->
+                                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end pt-1">
                                     <!-- Liều lượng -->
-                                    <div class="sm:col-span-3">
-                                        <label class="block font-semibold text-slate-700 mb-1">Liều lượng</label>
+                                    <div class="sm:col-span-6 lg:col-span-5">
+                                        <label class="block font-semibold text-slate-700 mb-1 text-[11px]">Liều lượng dùng</label>
                                         <input v-model="p.dosage" type="text"
-                                            class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                                            placeholder="1 viên/lần, ngày 2 lần" />
+                                            class="w-full h-[38px] bg-white border border-slate-200 rounded-xl px-3 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium placeholder-slate-400 shadow-2xs"
+                                            placeholder="vd: 1 viên/lần, ngày 2 lần sau ăn" />
                                     </div>
 
                                     <!-- Số ngày -->
-                                    <div class="sm:col-span-2">
-                                        <label class="block font-semibold text-slate-700 mb-1">Số ngày</label>
+                                    <div class="sm:col-span-3 lg:col-span-2">
+                                        <label class="block font-semibold text-slate-700 mb-1 text-[11px]">Số ngày uống</label>
                                         <input v-model="p.days" type="number" min="1" max="90"
-                                            class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 tabular-nums font-semibold"
+                                            class="w-full h-[38px] bg-white border border-slate-200 rounded-xl px-2.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 tabular-nums font-semibold text-center shadow-2xs"
                                             placeholder="5" />
                                     </div>
 
                                     <!-- Số lượng -->
-                                    <div class="sm:col-span-2">
-                                        <label class="block font-semibold text-slate-700 mb-1">
-                                            Số lượng <span class="text-rose-500">*</span>
+                                    <div class="sm:col-span-3 lg:col-span-2">
+                                        <label class="block font-semibold text-slate-700 mb-1 text-[11px] flex items-center justify-between">
+                                            <span>Số lượng <span class="text-rose-500">*</span></span>
+                                            <span v-if="getMedicine(p.medicine_id)" class="text-[10px] text-slate-400 font-normal">
+                                                ({{ getMedicine(p.medicine_id).unit }})
+                                            </span>
                                         </label>
                                         <input v-model="p.quantity" type="number" min="1"
-                                            class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 tabular-nums font-semibold"
-                                            placeholder="10" />
+                                            class="w-full h-[38px] bg-white border rounded-xl px-3 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 tabular-nums font-semibold shadow-2xs"
+                                            :class="getMedicine(p.medicine_id) && Number(p.quantity) > Number(getMedicine(p.medicine_id).stock_quantity) ? 'border-rose-400 bg-rose-50/40 text-rose-700' : 'border-slate-200'"
+                                            placeholder="5" />
+                                    </div>
+
+                                    <!-- Thành tiền dòng -->
+                                    <div class="sm:col-span-12 lg:col-span-3">
+                                        <label class="block font-semibold text-slate-500 mb-1 text-[11px]">Thành tiền dòng</label>
+                                        <div class="h-[38px] px-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between text-xs font-bold tabular-nums text-slate-900 shadow-2xs">
+                                            <span class="text-[11px] text-slate-400 font-normal">Tạm tính:</span>
+                                            <span class="text-sky-700">{{ formatCurrency((Number(p.quantity) || 0) * (Number(getMedicine(p.medicine_id)?.sell_price) || 0)) }}</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-3">
+                                <!-- Cảnh báo nếu số lượng vượt quá tồn kho -->
+                                <div v-if="getMedicine(p.medicine_id) && Number(p.quantity) > Number(getMedicine(p.medicine_id).stock_quantity)"
+                                    class="p-2.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-[11px] text-rose-700 font-medium">
+                                    <Icon name="alert" size="14" class="text-rose-600 shrink-0" />
+                                    <span>Cảnh báo: Số lượng kê (<strong>{{ p.quantity }} {{ getMedicine(p.medicine_id).unit }}</strong>) vượt quá tồn kho thực tế (Hiện chỉ còn <strong>{{ getMedicine(p.medicine_id).stock_quantity }} {{ getMedicine(p.medicine_id).unit }}</strong>).</span>
+                                </div>
+
+                                <!-- HÀNG 3: LỜI DẶN UỐNG THUỐC -->
+                                <div class="pt-1 border-t border-slate-200/60">
                                     <input v-model="p.note" type="text"
-                                        class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                                        placeholder="Lời dặn uống thuốc: sau khi ăn no, hòa tan vào nước..." />
-                                    
-                                    <button type="button" @click="removePrescription(index)"
-                                        class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0"
-                                        title="Xóa dòng thuốc">
-                                        <Icon name="trash" size="14" />
-                                    </button>
+                                        class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-2xs"
+                                        placeholder="Lời dặn uống thuốc: uống sau ăn no, hòa tan vào nước, bảo quản mát..." />
                                 </div>
                             </div>
 
@@ -555,8 +603,8 @@ function submit() {
 
                 </form>
 
-                <!-- Cột phụ: Tóm tắt chi phí & Lịch sử bệnh án (1 cột) -->
-                <div class="space-y-4">
+                <!-- Cột phụ: Tóm tắt chi phí & Lịch sử bệnh án (1 cột - Cố định đi theo khi cuộn trang) -->
+                <div class="space-y-4 lg:sticky lg:top-4">
                     
                     <!-- Card Tóm tắt chi phí dự tính -->
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3 text-xs">
