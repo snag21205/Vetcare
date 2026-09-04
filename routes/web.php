@@ -18,9 +18,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// ===== ROUTE CHỈ ADMIN =====
+// ===== ROUTE CHỈ ADMIN (QUẢN TRỊ TOÀN QUYỀN) =====
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::resource('medicines', \App\Http\Controllers\MedicineController::class);
+    // Quản lý tạo/sửa thuốc và nhập kho (Chỉ Admin)
+    Route::resource('medicines', \App\Http\Controllers\MedicineController::class)->except(['index', 'show']);
     Route::post('medicines/{medicine}/import', [\App\Http\Controllers\MedicineController::class, 'importStock'])
         ->name('medicines.import');
     Route::put('medicine-batches/{batch}', [\App\Http\Controllers\MedicineController::class, 'updateBatch'])
@@ -33,11 +34,20 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('users.toggle-status');
 });
 
-// ===== ROUTE CHO LỄ TÂN VÀ ADMIN =====
+// ===== ROUTE BÁC SĨ & ADMIN TRA CỨU DANH MỤC THUỐC =====
+Route::middleware(['auth', 'role:vet|admin'])->group(function () {
+    Route::get('medicines', [\App\Http\Controllers\MedicineController::class, 'index'])->name('medicines.index');
+    Route::get('medicines/{medicine}', [\App\Http\Controllers\MedicineController::class, 'show'])->name('medicines.show');
+});
+
+// ===== ROUTE CHO LỄ TÂN & ADMIN QUẢN LÝ TIẾP ĐÓN & ĐIỀU PHỐI LỊCH HẸN =====
 Route::middleware(['auth', 'role:receptionist|admin'])->group(function () {
-    Route::resource('customers', \App\Http\Controllers\CustomerController::class);
-    Route::resource('pets', \App\Http\Controllers\PetController::class);
-    Route::resource('appointments', \App\Http\Controllers\AppointmentController::class);
+    // Thao tác tạo/sửa/xóa khách hàng & thú cưng
+    Route::resource('customers', \App\Http\Controllers\CustomerController::class)->except(['index', 'show']);
+    Route::resource('pets', \App\Http\Controllers\PetController::class)->except(['index', 'show']);
+
+    // Thao tác tạo/sửa/hủy/check-in/xác nhận lịch hẹn
+    Route::resource('appointments', \App\Http\Controllers\AppointmentController::class)->except(['index']);
     Route::match(
         ['post', 'patch'],
         'appointments/{appointment}/check-in',
@@ -48,17 +58,44 @@ Route::middleware(['auth', 'role:receptionist|admin'])->group(function () {
         'appointments/{appointment}/confirm',
         [\App\Http\Controllers\AppointmentController::class, 'confirm']
     )->name('appointments.confirm');
-    Route::get('pets/{pet}/history', [\App\Http\Controllers\PetController::class, 'history'])
-        ->name('pets.history');
 });
 
-// ===== ROUTE CHO BÁC SĨ, LỄ TÂN VÀ ADMIN =====
-Route::middleware(['auth', 'role:vet|receptionist|admin'])->group(function () {
-    Route::resource('medical-records', \App\Http\Controllers\MedicalRecordController::class);
-    Route::get('medical-records/{medicalRecord}/pdf', [\App\Http\Controllers\MedicalRecordController::class, 'pdf'])
-        ->name('medical-records.pdf');
+// ===== ROUTE XEM TIẾP ĐÓN & LỊCH HẸN (LỄ TÂN, BÁC SĨ VÀ ADMIN) =====
+Route::middleware(['auth', 'role:receptionist|vet|admin'])->group(function () {
+    Route::get('customers', [\App\Http\Controllers\CustomerController::class, 'index'])->name('customers.index');
+    Route::get('customers/{customer}', [\App\Http\Controllers\CustomerController::class, 'show'])->name('customers.show');
+    Route::get('pets', [\App\Http\Controllers\PetController::class, 'index'])->name('pets.index');
+    Route::get('pets/{pet}', [\App\Http\Controllers\PetController::class, 'show'])->name('pets.show');
+    Route::get('pets/{pet}/history', [\App\Http\Controllers\PetController::class, 'history'])
+        ->name('pets.history');
+    Route::get('appointments', [\App\Http\Controllers\AppointmentController::class, 'index'])
+        ->name('appointments.index');
+});
+
+// ===== ROUTE CHUYÊN MÔN KHÁM BỆNH & KÊ ĐƠN (CHỈ BÁC SĨ VÀ ADMIN) =====
+Route::middleware(['auth', 'role:vet|admin'])->group(function () {
+    Route::get('medical-records/create', [\App\Http\Controllers\MedicalRecordController::class, 'create'])
+        ->name('medical-records.create');
+    Route::post('medical-records', [\App\Http\Controllers\MedicalRecordController::class, 'store'])
+        ->name('medical-records.store');
+    Route::get('medical-records/{medical_record}/edit', [\App\Http\Controllers\MedicalRecordController::class, 'edit'])
+        ->name('medical-records.edit');
+    Route::match(['put', 'patch'], 'medical-records/{medical_record}', [\App\Http\Controllers\MedicalRecordController::class, 'update'])
+        ->name('medical-records.update');
+    Route::delete('medical-records/{medical_record}', [\App\Http\Controllers\MedicalRecordController::class, 'destroy'])
+        ->name('medical-records.destroy');
     Route::post('ai/diagnose', [\App\Http\Controllers\AiDiagnosisController::class, 'diagnose'])
         ->name('ai.diagnose');
+});
+
+// ===== ROUTE XEM BỆNH ÁN & IN PDF (BÁC SĨ, ADMIN VÀ LỄ TÂN) =====
+Route::middleware(['auth', 'role:vet|admin|receptionist'])->group(function () {
+    Route::get('medical-records', [\App\Http\Controllers\MedicalRecordController::class, 'index'])
+        ->name('medical-records.index');
+    Route::get('medical-records/{medical_record}', [\App\Http\Controllers\MedicalRecordController::class, 'show'])
+        ->name('medical-records.show');
+    Route::get('medical-records/{medicalRecord}/pdf', [\App\Http\Controllers\MedicalRecordController::class, 'pdf'])
+        ->name('medical-records.pdf');
 });
 
 // ===== ROUTE HÓA ĐƠN (LỄ TÂN, KẾ TOÁN VÀ ADMIN) =====

@@ -54,13 +54,23 @@ class MedicalRecordController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request): Response
+    public function create(Request $request): Response|\Illuminate\Http\RedirectResponse
     {
         // Nếu chuyển từ Appointment đã check-in sang khám
         $appointment = null;
         if ($request->has('appointment_id')) {
             $appointment = Appointment::with(['pet.customer', 'doctor'])
                 ->findOrFail($request->appointment_id);
+
+            // Kiểm tra phân quyền: Bác sĩ chỉ được mở khám ca được phân công cho mình hoặc ca chưa chỉ định
+            $currentUser = $request->user();
+            if ($currentUser && $currentUser->hasRole('vet') && !$currentUser->hasRole('admin')) {
+                if ($appointment->doctor_id && (int)$appointment->doctor_id !== (int)$currentUser->id) {
+                    $doctorName = $appointment->doctor?->name ?? 'bác sĩ khác';
+                    return redirect()->route('appointments.index')
+                        ->with('error', "Ca khám này đã được phân công cho BS. {$doctorName}. Bạn không thể khám ca của bác sĩ khác!");
+                }
+            }
         }
 
         $pets = Pet::with('customer')->orderBy('name')->get();
@@ -99,9 +109,30 @@ class MedicalRecordController extends Controller
     public function store(StoreMedicalRecordRequest $request)
     {
         $validated = $request->validated();
+        $currentUser = $request->user();
+
+        // Kiểm tra phân quyền: Bác sĩ chỉ được tạo bệnh án cho ca của mình
+        if ($currentUser && $currentUser->hasRole('vet') && !$currentUser->hasRole('admin')) {
+            $validated['doctor_id'] = $currentUser->id;
+
+            if (!empty($validated['appointment_id'])) {
+                $apt = Appointment::find($validated['appointment_id']);
+                if ($apt && $apt->doctor_id && (int)$apt->doctor_id !== (int)$currentUser->id) {
+                    return back()->with('error', 'Bạn không thể lập bệnh án cho ca khám đã phân công cho bác sĩ khác!');
+                }
+            }
+        }
 
         // Sử dụng DB::transaction để bảo đảm an toàn dữ liệu
         $record = DB::transaction(function () use ($validated, $request) {
+            // Nếu có appointment_id và appointment chưa có doctor_id thì gán luôn
+            if (!empty($validated['appointment_id'])) {
+                $apt = Appointment::find($validated['appointment_id']);
+                if ($apt && !$apt->doctor_id) {
+                    $apt->update(['doctor_id' => $validated['doctor_id']]);
+                }
+            }
+
             // 1. Tạo phiếu khám
             $record = MedicalRecord::create([
                 'appointment_id'       => $validated['appointment_id'] ?? null,

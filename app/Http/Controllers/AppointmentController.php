@@ -21,18 +21,27 @@ class AppointmentController extends Controller
      */
     public function index(Request $request): Response
     {
-        $date = $request->date ?? today()->format('Y-m-d');
-        $status = $request->status ?? '';
+        $date     = $request->date ?? today()->format('Y-m-d');
+        $status   = $request->status ?? '';
+        $doctorId = $request->doctor_id ?? '';
 
         $appointments = Appointment::with(['pet.customer', 'doctor', 'medicalRecord.invoice'])
             ->whereDate('scheduled_at', $date)
             ->when($status, fn($q) => $q->where('status', $status))
+            ->when($doctorId, fn($q) => $q->where('doctor_id', $doctorId))
             ->orderBy('scheduled_at')
             ->get();
 
+        $doctors = User::role('vet')->get(['id', 'name']);
+
         return Inertia::render('Appointments/Index', [
             'appointments' => $appointments,
-            'filters'      => compact('date', 'status'),
+            'doctors'      => $doctors,
+            'filters'      => [
+                'date'      => $date,
+                'status'    => $status,
+                'doctor_id' => $doctorId,
+            ],
             // Truyền danh sách status để render dropdown filter
             'statuses'     => [
                 'pending'    => 'Chờ xác nhận',
@@ -142,13 +151,27 @@ class AppointmentController extends Controller
             ->with('success', 'Đã cập nhật lịch hẹn!');
     }
 
-    public function checkIn(Appointment $appointment)
+    public function checkIn(Request $request, Appointment $appointment)
     {
-        // Chỉ cho phép check-in nếu đang ở trạng thái confirmed
-        if ($appointment->status !== 'confirmed') {
-            return back()->with('error', 'Chỉ có thể check-in lịch đã xác nhận!');
+        // Cho phép check-in nếu đang ở trạng thái pending hoặc confirmed
+        if (!in_array($appointment->status, ['pending', 'confirmed'])) {
+            return back()->with('error', 'Chỉ có thể check-in lịch đang chờ hoặc đã xác nhận!');
         }
-        $appointment->update(['status' => 'checked_in']);
+
+        $updateData = ['status' => 'checked_in'];
+
+        // Nếu chỉ định hoặc thay đổi bác sĩ khi tiếp nhận
+        if ($request->filled('doctor_id')) {
+            $updateData['doctor_id'] = $request->doctor_id;
+        }
+
+        // Nếu có thêm ghi chú lúc tiếp nhận (ví dụ: nhiệt độ, triệu chứng ban đầu)
+        if ($request->filled('checkin_note')) {
+            $existingNote = $appointment->note ? $appointment->note . "\n" : '';
+            $updateData['note'] = $existingNote . '[Check-in ' . now()->format('H:i') . ']: ' . trim($request->checkin_note);
+        }
+
+        $appointment->update($updateData);
         $appointment->load(['pet.customer', 'doctor']);
 
         // Gửi thông báo cho Bác sĩ phụ trách và Quản trị viên
@@ -163,7 +186,8 @@ class AppointmentController extends Controller
             Notification::send($notifyUsers, new AppointmentCheckedInNotification($appointment));
         }
 
-        return back()->with('success', "Đã check-in cho {$appointment->pet->name}!");
+        $doctorText = $appointment->doctor ? " cho BS. {$appointment->doctor->name}" : "";
+        return back()->with('success', "Đã check-in thành công cho bé {$appointment->pet->name}{$doctorText}!");
     }
 
     public function confirm(Appointment $appointment)

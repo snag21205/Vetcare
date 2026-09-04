@@ -208,9 +208,16 @@ watch(() => page.url, () => {
                 </Link>
             </div>
 
-            <!-- Tiếp đón -->
-            <div v-if="isReceptionist || isAdmin" class="space-y-1">
-                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tiếp đón</div>
+            <!-- Tiếp đón & Lịch khám -->
+            <div v-if="isReceptionist || isVet || isAdmin" class="space-y-1">
+                <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tiếp đón & Lịch khám</div>
+                <Link :href="route('appointments.index')"
+                    @click="handleLinkClick"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': isActive('/appointments') }">
+                    <Icon name="calendar" size="16" />
+                    <span>Lịch hẹn khám</span>
+                </Link>
                 <Link :href="route('customers.index')"
                     @click="handleLinkClick"
                     class="sidebar-link"
@@ -225,13 +232,6 @@ watch(() => page.url, () => {
                     <Icon name="pet" size="16" />
                     <span>Vật nuôi</span>
                 </Link>
-                <Link :href="route('appointments.index')"
-                    @click="handleLinkClick"
-                    class="sidebar-link"
-                    :class="{ 'sidebar-link-active': isActive('/appointments') }">
-                    <Icon name="calendar" size="16" />
-                    <span>Lịch hẹn khám</span>
-                </Link>
             </div>
 
             <!-- Khám chữa bệnh -->
@@ -243,6 +243,13 @@ watch(() => page.url, () => {
                     :class="{ 'sidebar-link-active': isActive('/medical-records') }">
                     <Icon name="stethoscope" size="16" />
                     <span>Hồ sơ khám bệnh</span>
+                </Link>
+                <Link :href="route('medicines.index')"
+                    @click="handleLinkClick"
+                    class="sidebar-link"
+                    :class="{ 'sidebar-link-active': isActive('/medicines') }">
+                    <Icon name="medicine" size="16" />
+                    <span>Kho thuốc & Vật tư</span>
                 </Link>
             </div>
 
@@ -294,13 +301,6 @@ watch(() => page.url, () => {
             <!-- Quản trị hệ thống -->
             <div v-if="isAdmin" class="space-y-1">
                 <div class="px-3 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Quản trị hệ thống</div>
-                <Link :href="route('medicines.index')"
-                    @click="handleLinkClick"
-                    class="sidebar-link"
-                    :class="{ 'sidebar-link-active': isActive('/medicines') }">
-                    <Icon name="medicine" size="16" />
-                    <span>Kho thuốc & Vật tư</span>
-                </Link>
                 <Link :href="route('services.index')"
                     @click="handleLinkClick"
                     class="sidebar-link"

@@ -26,9 +26,7 @@ const page = usePage()
 const currentUserId = page.props.auth?.user?.id
 
 const defaultPetId = props.appointment ? props.appointment.pet_id : ''
-const defaultDoctorId = props.appointment && props.appointment.doctor_id 
-    ? props.appointment.doctor_id 
-    : currentUserId
+const defaultDoctorId = currentUserId
 
 const form = useForm({
     appointment_id:       props.appointment ? props.appointment.id : null,

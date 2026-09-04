@@ -2,6 +2,9 @@
 import Icon from '@/Components/Icon.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, watch } from 'vue'
+import { useAuth } from '@/Composables/useAuth'
+
+const { isVet, isAdmin } = useAuth()
 
 const props = defineProps({
     records: Object,
@@ -52,7 +55,7 @@ const formatDate = (dateStr) => {
                     <h1 class="text-xl font-bold text-slate-900 tracking-tight">Hồ sơ Khám bệnh</h1>
                     <p class="text-xs text-slate-500 mt-0.5">Tổng số: {{ records.total }} hồ sơ bệnh án trong hệ thống</p>
                 </div>
-                <Link :href="route('medical-records.create')"
+                <Link v-if="isVet || isAdmin" :href="route('medical-records.create')"
                     class="inline-flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xs transition-colors shrink-0">
                     <Icon name="plus" size="16" />
                     <span>Tạo phiếu khám mới</span>
