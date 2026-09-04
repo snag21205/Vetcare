@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewAppointmentNotification extends Notification implements ShouldQueue
+class NewAppointmentNotification extends Notification
 {
     use Queueable;
 
@@ -19,8 +19,7 @@ class NewAppointmentNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        // Database notification cho chuông trên web + Mail nếu có cấu hình
-        return ['database', 'mail'];
+        return ['database'];
     }
 
     public function toMail(object $notifiable): MailMessage

@@ -87,6 +87,8 @@ Route::middleware(['auth', 'role:accountant|admin'])->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('api/notifications/recent', [\App\Http\Controllers\NotificationController::class, 'recent'])
         ->name('notifications.recent');
+    Route::post('api/notifications/test', [\App\Http\Controllers\NotificationController::class, 'sendTestNotification'])
+        ->name('notifications.test');
     Route::get('notifications', [\App\Http\Controllers\NotificationController::class, 'index'])
         ->name('notifications.index');
     Route::match(['post', 'patch'], 'notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])
@@ -94,6 +96,7 @@ Route::middleware('auth')->group(function () {
     Route::match(['post', 'patch'], 'notifications/{id}/mark-as-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead']);
     Route::match(['post', 'patch'], 'notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
         ->name('notifications.mark-all-read');
+    Route::match(['post', 'patch'], 'notifications/mark-all-as-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead']);
     Route::delete('notifications/{id}', [\App\Http\Controllers\NotificationController::class, 'destroy'])
         ->name('notifications.destroy');
 });

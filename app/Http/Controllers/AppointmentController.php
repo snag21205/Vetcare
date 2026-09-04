@@ -7,7 +7,10 @@ use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Pet;
 use App\Models\User;
+use App\Notifications\AppointmentCheckedInNotification;
+use App\Notifications\NewAppointmentNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -75,13 +78,13 @@ class AppointmentController extends Controller
         $appointment = Appointment::create($data);
         $appointment->load(['pet.customer', 'doctor']);
 
-        // Gửi thông báo cho Lễ tân & Bác sĩ phụ trách
-        $receptionists = User::role('receptionist')->get();
-        if ($receptionists->isNotEmpty()) {
-            \Illuminate\Support\Facades\Notification::send($receptionists, new \App\Notifications\NewAppointmentNotification($appointment));
+        // Gửi thông báo cho Lễ tân, Bác sĩ phụ trách và Quản trị viên
+        $recipients = User::role(['receptionist', 'admin'])->get();
+        if ($appointment->doctor && !$recipients->contains('id', $appointment->doctor->id)) {
+            $recipients->push($appointment->doctor);
         }
-        if ($appointment->doctor && !$receptionists->contains('id', $appointment->doctor->id)) {
-            $appointment->doctor->notify(new \App\Notifications\NewAppointmentNotification($appointment));
+        if ($recipients->isNotEmpty()) {
+            Notification::send($recipients, new NewAppointmentNotification($appointment));
         }
 
         $targetDate = $appointment->scheduled_at 
@@ -146,6 +149,20 @@ class AppointmentController extends Controller
             return back()->with('error', 'Chỉ có thể check-in lịch đã xác nhận!');
         }
         $appointment->update(['status' => 'checked_in']);
+        $appointment->load(['pet.customer', 'doctor']);
+
+        // Gửi thông báo cho Bác sĩ phụ trách và Quản trị viên
+        $notifyUsers = collect();
+        if ($appointment->doctor) {
+            $notifyUsers->push($appointment->doctor);
+        }
+        $admins = User::role('admin')->get();
+        $notifyUsers = $notifyUsers->merge($admins)->unique('id');
+
+        if ($notifyUsers->isNotEmpty()) {
+            Notification::send($notifyUsers, new AppointmentCheckedInNotification($appointment));
+        }
+
         return back()->with('success', "Đã check-in cho {$appointment->pet->name}!");
     }
 

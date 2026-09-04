@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class AppointmentReminderNotification extends Notification implements ShouldQueue
+class AppointmentReminderNotification extends Notification
 {
     use Queueable;
 
@@ -19,7 +19,7 @@ class AppointmentReminderNotification extends Notification implements ShouldQueu
 
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database'];
     }
 
     public function toMail(object $notifiable): MailMessage

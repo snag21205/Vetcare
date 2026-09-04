@@ -84,6 +84,18 @@ class InvoiceController extends Controller
             'paid_at' => now(),
         ]);
 
+        $invoice->load(['medicalRecord.doctor', 'medicalRecord.pet']);
+        $recipients = collect();
+        if ($invoice->medicalRecord?->doctor) {
+            $recipients->push($invoice->medicalRecord->doctor);
+        }
+        $admins = \App\Models\User::role('admin')->get();
+        $recipients = $recipients->merge($admins)->unique('id');
+
+        if ($recipients->isNotEmpty()) {
+            \Illuminate\Support\Facades\Notification::send($recipients, new \App\Notifications\InvoicePaidNotification($invoice));
+        }
+
         return back()->with('success', "Đã xác nhận thanh toán thành công cho hóa đơn {$invoice->invoice_number}!");
     }
 

@@ -9,10 +9,13 @@ use App\Models\MedicalRecord;
 use App\Models\Medicine;
 use App\Models\Pet;
 use App\Models\Service;
+use App\Models\User;
+use App\Notifications\InvoiceCreatedNotification;
 use App\Services\InventoryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -158,10 +161,20 @@ class MedicalRecordController extends Controller
             return $record;
         });
 
-        $record->load(['pet.customer', 'doctor', 'prescriptions.medicine']);
+        $record->load(['pet.customer', 'doctor', 'prescriptions.medicine', 'invoice']);
+
+        // Gửi thông báo cho Kế toán, Lễ tân và Admin có hóa đơn mới cần thanh toán
+        $invoice = $record->invoice;
+        if ($invoice) {
+            $invoiceRecipients = User::role(['accountant', 'receptionist', 'admin'])->get();
+            if ($invoiceRecipients->isNotEmpty()) {
+                Notification::send($invoiceRecipients, new InvoiceCreatedNotification($invoice));
+            }
+        }
+
         if ($record->pet?->customer?->email) {
             try {
-                \Illuminate\Support\Facades\Notification::route('mail', $record->pet->customer->email)
+                Notification::route('mail', $record->pet->customer->email)
                     ->notify(new \App\Notifications\PrescriptionSummaryNotification($record));
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning('Không gửi được email đơn thuốc: ' . $e->getMessage());
