@@ -101,6 +101,10 @@ class MedicineController extends Controller
      */
     public function edit(Medicine $medicine): Response
     {
+        $medicine->load(['batches' => function ($query) {
+            $query->orderBy('expiry_date', 'asc')->orderBy('id', 'asc');
+        }]);
+
         return Inertia::render('Medicines/Edit', [
             'medicine' => $medicine,
         ]);
@@ -111,11 +115,63 @@ class MedicineController extends Controller
      */
     public function update(UpdateMedicineRequest $request, Medicine $medicine)
     {
-        $medicine->update($request->validated());
-        $medicine->recalculateStockAndEarliestExpiry();
+        DB::transaction(function () use ($request, $medicine) {
+            $validated = $request->validated();
+
+            $medicine->update([
+                'name'                => $validated['name'],
+                'unit'                => $validated['unit'],
+                'sell_price'          => $validated['sell_price'],
+                'import_price'        => $validated['import_price'],
+                'low_stock_threshold' => $validated['low_stock_threshold'],
+            ]);
+
+            // Cập nhật danh sách các lô thuốc
+            if (isset($validated['batches']) && is_array($validated['batches'])) {
+                foreach ($validated['batches'] as $bData) {
+                    // Nếu đánh dấu xóa
+                    if (!empty($bData['_delete']) && !empty($bData['id'])) {
+                        $medicine->batches()->where('id', $bData['id'])->delete();
+                        continue;
+                    }
+
+                    $batchAttrs = [
+                        'batch_number'       => !empty($bData['batch_number']) ? trim($bData['batch_number']) : ('LO-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4))),
+                        'remaining_quantity' => (int)($bData['remaining_quantity'] ?? 0),
+                        'quantity'           => max((int)($bData['quantity'] ?? $bData['remaining_quantity'] ?? 0), (int)($bData['remaining_quantity'] ?? 0)),
+                        'import_price'       => isset($bData['import_price']) && $bData['import_price'] !== '' ? (float)$bData['import_price'] : $medicine->import_price,
+                        'expiry_date'        => !empty($bData['expiry_date']) ? $bData['expiry_date'] : null,
+                    ];
+
+                    if (!empty($bData['id'])) {
+                        $batch = $medicine->batches()->where('id', $bData['id'])->first();
+                        if ($batch) {
+                            $batch->update($batchAttrs);
+                        }
+                    } else {
+                        // Thêm lô mới
+                        $medicine->batches()->create($batchAttrs);
+                    }
+                }
+            }
+
+            // Nếu thuốc chưa có lô nào trong DB nhưng người dùng nhập tồn kho > 0
+            if ($medicine->batches()->count() === 0 && !empty($validated['stock_quantity'])) {
+                $medicine->batches()->create([
+                    'batch_number'       => 'LO-' . date('Ymd') . '-001',
+                    'quantity'           => (int)$validated['stock_quantity'],
+                    'remaining_quantity' => (int)$validated['stock_quantity'],
+                    'import_price'       => $medicine->import_price,
+                    'expiry_date'        => $validated['expiry_date'] ?? null,
+                ]);
+            }
+
+            // Luôn đồng bộ lại tổng tồn kho và hạn dùng gần nhất (FEFO)
+            $medicine->recalculateStockAndEarliestExpiry();
+        });
 
         return redirect()->route('medicines.index')
-            ->with('success', "Đã cập nhật thông tin thuốc {$medicine->name} thành công!");
+            ->with('success', "Đã cập nhật thông tin thuốc {$medicine->name} và các lô thành công!");
     }
 
     /**
@@ -127,6 +183,52 @@ class MedicineController extends Controller
 
         return redirect()->route('medicines.index')
             ->with('success', "Đã xóa thuốc {$medicine->name} khỏi danh mục kho!");
+    }
+
+    /**
+     * Cập nhật nhanh thông tin 1 lô thuốc từ modal.
+     */
+    public function updateBatch(Request $request, \App\Models\MedicineBatch $batch)
+    {
+        $validated = $request->validate([
+            'batch_number'       => ['nullable', 'string', 'max:100'],
+            'remaining_quantity' => ['required', 'integer', 'min:0'],
+            'import_price'       => ['nullable', 'numeric', 'min:0'],
+            'expiry_date'        => ['nullable', 'date'],
+        ], [
+            'remaining_quantity.required' => 'Số lượng tồn không được để trống.',
+            'remaining_quantity.min'      => 'Số lượng tồn phải lớn hơn hoặc bằng 0.',
+        ]);
+
+        DB::transaction(function () use ($batch, $validated) {
+            $batch->update([
+                'batch_number'       => !empty($validated['batch_number']) ? trim($validated['batch_number']) : $batch->batch_number,
+                'remaining_quantity' => (int)$validated['remaining_quantity'],
+                'quantity'           => max($batch->quantity, (int)$validated['remaining_quantity']),
+                'import_price'       => isset($validated['import_price']) && $validated['import_price'] !== '' ? (float)$validated['import_price'] : $batch->import_price,
+                'expiry_date'        => !empty($validated['expiry_date']) ? $validated['expiry_date'] : null,
+            ]);
+
+            $batch->medicine->recalculateStockAndEarliestExpiry();
+        });
+
+        return back()->with('success', "Đã cập nhật thông tin lô " . ($batch->batch_number ?: '#' . $batch->id) . " thành công!");
+    }
+
+    /**
+     * Xóa 1 lô thuốc.
+     */
+    public function destroyBatch(\App\Models\MedicineBatch $batch)
+    {
+        $medicine = $batch->medicine;
+        $batchNumber = $batch->batch_number ?: ('Lô #' . $batch->id);
+
+        DB::transaction(function () use ($batch, $medicine) {
+            $batch->delete();
+            $medicine->recalculateStockAndEarliestExpiry();
+        });
+
+        return back()->with('success', "Đã xóa lô thuốc {$batchNumber} thành công!");
     }
 
     /**

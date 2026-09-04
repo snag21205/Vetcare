@@ -23,6 +23,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('medicines', \App\Http\Controllers\MedicineController::class);
     Route::post('medicines/{medicine}/import', [\App\Http\Controllers\MedicineController::class, 'importStock'])
         ->name('medicines.import');
+    Route::put('medicine-batches/{batch}', [\App\Http\Controllers\MedicineController::class, 'updateBatch'])
+        ->name('medicine-batches.update');
+    Route::delete('medicine-batches/{batch}', [\App\Http\Controllers\MedicineController::class, 'destroyBatch'])
+        ->name('medicine-batches.destroy');
     Route::resource('services', \App\Http\Controllers\ServiceController::class);
     Route::resource('users', \App\Http\Controllers\UserController::class);
     Route::patch('users/{user}/toggle-status', [\App\Http\Controllers\UserController::class, 'toggleStatus'])
